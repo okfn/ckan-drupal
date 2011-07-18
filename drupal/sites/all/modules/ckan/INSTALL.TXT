@@ -26,11 +26,10 @@ python setup.py develop
 ====================================
 This is not the drupal module but an extension for CKAN.
 
-pip install -e git+https://github.com/okfn/ckanext-drupal.git#egg=ckanext-drupal
 # add the drupal extension to ckan.plugins section of development.ini 
 # Add your database connection string
   ckan.plugins = drupal
-  drupal.db.url = mysql://user:pass@localhost/dbname
+  drupal.db_url = mysql://user:pass@localhost/dbname
 
 
 3. Start CKAN
