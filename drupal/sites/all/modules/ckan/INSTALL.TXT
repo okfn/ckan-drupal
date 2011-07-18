@@ -1,0 +1,47 @@
+Use the following instructions to install. 
+
+1. Install CKAN
+===============
+
+The commands have been adapted from the full documentation at https://bitbucket.org/okfn/ckan
+
+mkdir pyenv
+sudo apt-get install build-essential libxml2-dev libxslt-dev wget mercurial postgresql libpq-dev git-core python-dev python-psycopg2 python-virtualenv  subversion
+virtualenv pyenv
+. pyenv/bin/activate
+pip install -e hg+http://bitbucket.org/okfn/ckan#egg=ckan
+pip install -r pyenv/src/ckan/requires/lucid_missing.txt -r pyenv/src/ckan/requires/lucid_conflict.txt -r pyenv/src/ckan/requires/lucid_present.txt
+sudo -u postgres createuser -S -D -R -P ckantest
+- set password as 'pass'
+sudo -u postgres createdb -O ckantest ckantest
+cd pyenv/src/ckan
+paster make-config ckan development.ini
+paster db init
+mkdir data
+
+
+2. Install drupal extension for CKAN
+====================================
+This is not the drupal module but an extension for CKAN.
+
+pip install -e git+https://github.com/okfn/ckanext-drupal.git#egg=ckanext-drupal
+# add the drupal extension to ckan.plugins section of development.ini 
+# Add your database connection string
+  ckan.plugins = drupal
+  drupal.db.url = mysql://user:pass@localhost/dbname
+
+
+3. Start CKAN
+=============
+Start the CKAN webserver on localhost. If you need to change this, alter development.ini .
+
+paster serve development.ini
+
+
+4. Install drupal module CKAN
+=============================
+Install in the normal drupal way.
+We require services-6.x-3.0-rc1
+
+
+

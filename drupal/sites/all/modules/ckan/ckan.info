@@ -1,0 +1,11 @@
+name = CKAN project
+description = Integratio with CKAN data hub.
+package = CKAN
+core = 6.x
+
+dependencies[] = services
+dependencies[] = rest_server
+dependencies[] = content
+
+#dependencies[] = features_ckan
+dependencies[] = views

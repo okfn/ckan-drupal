@@ -1,0 +1,294 @@
+<?php
+
+ /**
+  * @file ckan.module
+  * Intgration with CKAN data hub.
+  */
+
+
+ /**
+  * Defines function signatures for resources available to services.
+  *
+  * Functionally this is very similar to the way hook_menu() works, and in many
+  * ways Services can be seen as an abstraction layer on top of hook_menu().
+  *
+  * @return
+  *   An associative array which defines available resources.
+  *
+  *   The associative array which defines services has six possible top
+  *   level keys:
+  *
+  *     - create
+  *     - retrieve
+  *     - update
+  *     - delete
+  *     - actions
+  *     - targeted actions
+  *
+  *   The first four (the CRUD functions) define the indvidual service
+  *   callbacks for each function. However 'actions' and 'targeted actions'
+  *   can contain multiple callbacks.
+  *
+  *   For those familiar with Services 2.x, these callbacks are created
+  *   similarly, but the keys have changed around a bit. The following keys
+  *   are used to describe a callback.
+  *
+  *   - help: Text describing what this callback does.
+  *   - callback: The name of a function to call when this resource is
+  *     requested.
+  *   - access callback: The name of a function to call to check whether
+  *     the requesting user has permission to access this resource. If not
+  *     specified, this defaults to 'user_access'.
+  *   - access arguments: The arguments to pass to the access callback.
+  *   - access arguments append: A boolean indicating whether the resource's
+  *     arguments should be appended to the access arguments. This can be useful
+  *     in situations where an access callback is specific to the particular
+  *     item ('edit all nodes' vs 'edit my nodes'). Defaults to FALSE.
+  *   - args: an array describing the arguments which should be passed to this
+  *     resource when it is called. Each element in the array is an associative
+  *     array containing the following keys:
+  *
+  *     - name: The name of this argument.
+  *     - type: The data type of this argument (int, string, array)
+  *     - description: Text describing this argument's usage.
+  *     - optional: A boolean indicating whether or not this argument is optional.
+  *     - source: Where this argument should be retrieved from. This can be
+  *       'data' (indicating the POST data), 'param' (indicating the query
+  *       string) or 'path' (indicating the url path). In the case of path,
+  *       an additional parameter must be passed indicating the index to be used.
+  *     - default value: this is a value that will be passed to the method for this particular argument if no argument value is passed
+  */
+  function ckan_services_resources() {
+    $services = array();
+
+   /*
+    *  API for CKAN package management
+    *
+    *  Index            | Return list of Package nids
+    *  Retrieve         | Return the data of a Package node
+    *  Create           | Create a Package node
+    *  Update           |
+    *  Delete           | Delete a Package node
+    *  Action           |
+    *         Save      | Loads and Saves a package node.
+    *  Targeted Action  |
+    *
+    */
+
+
+    $services['package']['index'] = array(
+      'help' => 'index a package',
+      'callback' => '_ckanrest_index',
+      'access callback' => '_ckanrest_access',
+      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'args' => array( ),
+    );
+
+    $services['package']['retrieve'] = array(
+      'help' => 'Retrieves a package',
+      'callback' => '_ckanrest_retrieve',
+      'access callback' => '_ckanrest_access',
+      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'args' => array(
+        array(
+          'name' => 'nid',
+          'type' => 'int',
+          'description' => 'The nid of the ckan package to get',
+          'source' => array('path' => '0'),
+          'optional' => FALSE,
+        ),
+      ),
+    );
+
+    $services['package']['create'] = array(
+      'help' => 'Creates a Package',
+      'callback' => '_ckanrest_create',
+      'access callback' => '_ckanrest_access',
+      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'args' => array(
+        array(
+          'name' => 'data',
+          'type' => 'array',
+          'description' => 'The package object',
+          'source' => 'data',
+          'optional' => FALSE,
+        ),
+      ),
+    );
+
+    $services['package']['delete'] = array(
+      'help' => 'Delete a Package node',
+      'callback' => '_ckanrest_delete',
+      'access callback' => '_ckanrest_access',
+      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'args' => array(
+        array(
+          'name' => 'nid',
+          'type' => 'int',
+          'description' => 'The nid of the ckan package to get',
+          'source' => array('path' => '0'),
+          'optional' => FALSE,
+        ),
+      ),
+    );
+
+
+   /*
+    *  Supply a Package nid to save the node.
+    *  Needed because of direct drupal databases writes by CKAN
+    *
+    *  @todo Using actions instead of targed actions because of bugs in services 6.x-3.0-rc1
+    */
+    $services['package']['actions'] = array(
+      'save' => array(
+        'help' => 'Loads and Saves a Package node.',
+        'callback' => '_ckanrest_save',
+        'access callback' => '_ckanrest_access',
+        'file' => array('file' => 'inc', 'module' => 'ckan'),
+        'args' => array(
+          array(
+            'name' => 'nid',
+            'type' => 'int',
+            'description' => 'A valid Package node ID',
+            'source' => 'data',
+            'optional' => FALSE,
+          ),
+        ),
+      ),
+    );
+
+    return $services;
+  }
+
+
+  /**
+   * Access callback for the ckan resource.
+   *
+   * @return bool
+   *  Whether access is given or not.
+   */
+  function  _ckanrest_access() {
+  	return TRUE;
+  }
+
+ /**
+  * Implementation of hook_ctools_plugin_api().
+  */
+
+	function ckan_ctools_plugin_api($owner, $api) {
+   return array(
+    'version' => 3,
+     'file' => 'ckan.services.inc', // Optional parameter to indicate the file name to load.
+     'path' => drupal_get_path('module', 'ckan') . '/includes', // If specifying the file key, path is required.
+	    );
+	 }
+
+
+	function ckan_views_api(){
+	  // Note that you can include 'path' in this array so that your views.inc
+	  // file can be stored in a different location.
+	  return array(
+	  	'path' => drupal_get_path('module', 'ckan') . '/includes',
+	    'api' => 2.0,
+	  );
+	}
+
+
+	function ckan_insert($node) {
+	  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+    $ckan = new Ckan('http://127.0.0.1:5000/','bf9b6b2a-136e-40f3-826f-f5d9bd819d6b');
+
+    $jsonstring ='{
+      	"name": "%s",
+ 				"title": "%s",
+  			"url": "%s",
+  			"notes": "%s",
+  			"maintainer": "%s",
+  			"maintainer_email": "%s",
+  			"license_id": "%s"
+      }';
+
+      $data = sprintf($jsonstring,
+        $node->title,
+        $node->title,
+        $node->field_url['0']['url'],
+        $node->field_notes['0']['notes'],
+        $node->field_maintainer['0']['field_maintainer'],
+        $node->field_maintainer_email['0']['maintainer_email'],
+        $node->field_license_id['0']['license_id']
+       );
+
+	  try {
+       $return = $ckan->createPackage($data);
+       // Exception should have been thrown but if not, detect if we don't have a package ID
+       $node->field_id['0']['value'] = (strlen($return->id) > 5) ? $return->id : 'invalid';
+       node_save($node);
+	  } catch (Exception $e) {
+      form_set_error('', $e->getMessage());
+
+      // Delete node if something has gone wrong
+      if (is_numeric($node->nid)) {
+        node_delete($node->nid);
+      }
+	  }
+
+	}
+
+  function ckan_update($node) {
+    require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+    $ckan = new Ckan('http://127.0.0.1:5000/','bf9b6b2a-136e-40f3-826f-f5d9bd819d6b');
+    $jsonstring ='{
+      	"name": "%s",
+    		"title": "%s",
+    		"url": "%s",
+    		"notes": "%s",
+    		"maintainer": "%s",
+    		"maintainer_email": "%s",
+    		"license_id": "%s"
+      }';
+
+    $data = sprintf($jsonstring,
+      $node->title,
+      $node->title,
+      $node->field_url['0']['url'],
+      $node->field_notes['0']['value'],
+      $node->field_maintainer['0']['value'],
+      $node->field_maintainer_email['0']['email'],
+      $node->field_license_id['0']['value']
+    );
+    try {
+      $return = $ckan->updatePackage($data, $node->field_id['0']['value']);
+    } catch (Exception $e) {
+        form_set_error('', $e->getMessage());
+        //@todo revert revision
+    }
+
+  }
+
+/**
+ * Implementation of hook_node_info().
+ */
+function ckan_node_info() {
+  return array(
+    'ckan_package' => array(
+      'name' => 'ckan',
+      'module' => 'ckan',
+      'description' => '',
+      'help' => '',
+      'has_title' => TRUE,
+      'title_label' => 'Title',
+      'has_body' => TRUE,
+      'body_label' => '',
+      'min_word_count' => '',
+      'locked' => FALSE,
+    ),
+    // add further types as needed
+  );
+
+}
+
+
+
+
+
+

@@ -1,0 +1,16 @@
+; $Id: views_test.info,v 1.1.4.2 2009/12/22 00:38:03 merlinofchaos Exp $
+name = Views Test
+description = Test module for Views.
+package = Views
+core = 7.x
+dependencies[] = views
+hidden = TRUE
+files[] = views_test.module
+files[] = views_test.install
+
+; Information added by drupal.org packaging script on 2010-04-07
+version = "6.x-3.0-alpha3"
+core = "6.x"
+project = "views"
+datestamp = "1270684211"
+
