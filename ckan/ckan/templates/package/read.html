@@ -1,0 +1,113 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Data Packages</py:def>
+      
+  <py:match path="primarysidebar">
+  
+    <li class="widget-container widget_text" py:if="not c.hide_welcome_message">
+      <h3>First time at ${g.site_title}?</h3>        
+      <p>
+          ${g.site_title} is a catalogue for data. ${h.subnav_link(c, _('Click here to find out more ...'), controller='home', action='about', id=None)}
+      </p>
+    </li>
+
+    <li class="widget-container widget_text">
+        <h3>Tags</h3>
+        ${tag_list(c.pkg_dict.get('tags', ''))}
+        <p class="widget_action" py:if="h.am_authorized(c, actions.EDIT, c.pkg)">
+            ${h.subnav_link(c, 'Add a new Tag', controller='package', action='edit', id=c.pkg.name)}
+        </p>
+    </li>
+
+    <li class="widget-container widget_text">
+        <h3>Groups</h3>
+        <py:if test="c.pkg.groups">        
+            <ul>
+              <li py:for="group in sorted(c.pkg.groups, key=lambda g: g.display_name)">
+                  <a href="${h.url_for(controller='group', action='read', id=group.name)}">${group.display_name}</a>
+              </li>
+            </ul>
+        </py:if>
+        <py:if test="not c.pkg.groups">
+             Groups are collections of packages maintained by users of ${g.site_title}. This package has not been added to any groups yet.
+        </py:if>
+        <p class="widget_action" py:if="h.am_authorized(c, actions.EDIT, c.pkg)">
+            ${h.subnav_link(c, 'Add to a Group', controller='package', action='edit', id=c.pkg.name)}        
+        </p>
+    </li>
+    
+    <py:if test="c.package_relationships">
+        <li class="widget-container widget_text">
+              <h3>Related packages</h3>
+              <ul>
+                <py:for each="pkg, relationship_str, comment in c.package_relationships">
+                  <li>
+                    ${h.literal(relationship_str % (h.link_to(pkg.name, h.url_for(controller="package", action="read", id=pkg.name))))}
+                    <span py:if="comment is not None and len(comment)" class="relationship_comment">
+                        (${comment})
+                    </span>
+                  </li>
+                </py:for>
+              </ul>
+        </li>
+    </py:if>
+    
+    <li class="widget-container widget_text">
+    <py:if test="c.pkg.isopen() and c.pkg.resources">
+      <h3>
+        This Package is Open
+      </h3>
+      <p py:if="c.pkg.license_id">
+        License:
+        <py:choose test="">
+          <strong py:when="c.pkg.license and c.pkg.license.url"><br /><a href="${c.pkg.license.url}">${c.pkg.license.title}</a></strong>
+          <strong py:when="c.pkg.license"><br />${c.pkg.license.title}</strong>
+          <strong py:when="c.pkg.license_id"><br />${c.pkg.license_id}</strong>
+        </py:choose>
+      </p>
+      <p class="okd">
+        <a
+          href="http://www.opendefinition.org/okd/"
+          title="This package satisfies the Open Knowledge Definition.">
+          <img src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" /></a>
+        <a
+          href="http://www.opendefinition.org/okd/"
+          title="This package satisfies the Open Knowledge Definition.">
+          <img src="http://assets.okfn.org/images/ok_buttons/oc_80x15_blue.png" alt="[Open Content]" /></a>
+      </p>
+    </py:if>
+
+    <py:if test="not(c.pkg.isopen() and c.pkg.resources)">
+      <h3 i18n:msg="">This package is Not Open</h3> 
+      
+      <p>Either because it is not openly licensed or is missing
+      downloadable resources.</p>
+      <p class="widget_action">
+        <a href="http://isitopendata.org/enquiry/start/?ckan_package=${c.pkg.name}">Start an enquiry on IsItOpenData &raquo;</a>
+      </p>
+    </py:if>
+    </li>
+  </py:match>
+
+  <div py:match="content">
+    <xi:include href="read_core.html" />
+  </div>
+
+  <py:if test="config.get('rdf_packages')">
+    <py:def function="optional_head">
+      <link rel="alternate" type="application/rdf+xml" title="RDF/XML" href="${config['rdf_packages'] + '/' + c.pkg.id + '.rdf' }" />
+      <link rel="alternate" type="application/turtle" title="RDF/Turtle" href="${config['rdf_packages'] + '/' + c.pkg.id + '.ttl' }" />
+    </py:def>
+  </py:if>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="Package History"
+    href="${url(controller='package', action='history', id=c.pkg.name, format='atom', days=7)}" />
+  </py:def>
+
+  <xi:include href="layout.html" />
+</html>
+

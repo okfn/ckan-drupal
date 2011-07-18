@@ -1,0 +1,210 @@
+#
+# ckan - Pylons configuration
+#
+# The %(here)s variable will be replaced with the parent directory of this file
+#
+[DEFAULT]
+debug = true
+email_to = you@yourdomain.com
+smtp_server = localhost
+error_email_from = paste@localhost
+
+[server:main]
+use = egg:Paste#http
+host = 0.0.0.0
+port = 5000
+
+[app:main]
+use = egg:ckan
+full_stack = true
+cache_dir = %(here)s/data
+beaker.session.key = ckan
+beaker.session.secret = ${app_instance_secret}
+app_instance_uuid = ${app_instance_uuid}
+
+# Add any CKAN plugins here. Note: This line is required to be here for 
+# packaging, even if it is empty.
+ckan.plugins = 
+
+# If you'd like to fine-tune the individual locations of the cache data dirs
+# for the Cache data, or the Session saves, un-comment the desired settings
+# here:
+#beaker.cache.data_dir = %(here)s/data/cache
+#beaker.session.data_dir = %(here)s/data/sessions
+
+# WARNING: *THE LINE BELOW MUST BE UNCOMMENTED ON A PRODUCTION ENVIRONMENT*
+# Debug mode will enable the interactive debugging tool, allowing ANYONE to
+# execute malicious code after an exception is raised.
+set debug = false
+
+# Specify the database for SQLAlchemy to use:
+# * Postgres is currently required for a production CKAN deployment
+# * Sqlite (memory or file) can be used as a quick alternative for testing
+sqlalchemy.url = postgresql://ckantest:pass@localhost/ckantest
+#sqlalchemy.url = sqlite:///
+#sqlalchemy.url = sqlite:///%(here)s/somedb.db
+
+# repoze.who config
+who.config_file = %(here)s/who.ini
+who.log_level = warning
+who.log_file = %(cache_dir)s/who_log.ini
+
+# CKAN auth configuration (TODO: rename to ckan.auth or similar ...)
+# space separated list ...
+auth.admins = 
+
+# CKAN caching 
+ckan.cache_enabled = False
+ckan.cache_validation_enabled = True
+# cache to persistent files
+beaker.cache.type = file
+# default expiry time for the cache (where not specified specifically)
+ckan.cache.default_expires = -1
+# cache expiry settings for specific controllers
+# by default these are disabled, enable as needed to a time in seconds
+ckan.controllers.expires = -1
+ckan.controllers.home.expires = -1
+ckan.controllers.package.list.expires = -1
+ckan.controllers.tag.read.expires = -1
+ckan.controllers.apiv1.package.list.expires = -1
+ckan.controllers.apiv1.package.show.expires = -1
+ckan.controllers.apiv2.package.list.expires = -1
+ckan.controllers.apiv2.package.show.expires = -1
+
+# CKAN QoS monitoring
+ckan.enable_call_timing = false
+
+# Location of RDF versions of packages
+#rdf_packages = http://semantic.ckan.net/record/
+
+# Location of licenses group (defaults to local Python licenses package)
+#licenses_group_url = http://licenses.opendefinition.org/2.0/ckan_original
+
+# Package form to use
+package_form = standard
+
+# Hide certain extras fields from package read form:
+# package_hide_extras = for_search_index_only
+
+# API configuration
+#apikey_header_name = X-CKAN-API-Key
+
+# Changeset configuration
+#changeset.auto_commit = true
+#changeset.sources = http://www.ckan.net/,
+
+# Guide location
+#guide_url = http://wiki.okfn.org/ckan/doc/
+
+## extra places to look for templates and public files (comma separated lists)
+## any templates/files found will override correspondingly named ones in
+## ckan/templates/ and ckan/public
+## (e.g. to override main layout template layout.html or add extra css files)
+# extra_template_paths = %(here)s/my-templates
+# extra_public_paths = %(here)s/my-public
+
+# Package form integration
+#package_edit_return_url = http://another.frontend/package/<NAME>
+#package_new_return_url = http://another.frontend/package/<NAME>
+
+
+# Turn on messaging with carrot, default to false
+#ckan.async_notifier = true
+# Messaging module used by carrot:
+# * pyamqplib - AMQP (e.g. for RabbitMQ)
+# * queue - native Python Queue (debugging and tests only)
+#carrot_messaging_library = pyamqplib
+
+## Update the search index synchronously (i.e. in-process rather than
+## out-of-process as would be case if using AMQP framework)
+## Set to false to disable, true to enable
+## Default enabled (and enabled if option entirely absent)
+## NOTE this is mutually exclusive with ckan.async_notifier
+ckan.build_search_index_synchronously = true
+
+## Title of site (using in several places including templates and <title> tag
+ckan.site_title = CKAN
+
+## Logo image to use (replaces site_title string on front page if defined)
+ckan.site_logo = http://assets.okfn.org/p/ckan/img/ckan_logo_largetext.png
+
+## Site tagline / description (used on front page)
+ckan.site_description = 
+
+## Used in creating some absolute urls (such as rss feeds, css files) and 
+## dump filenames
+ckan.site_url =
+
+## Favicon (default is the CKAN software favicon)
+ckan.favicon = http://assets.okfn.org/p/ckan/img/ckan.ico
+
+
+## An 'id' for the site (using, for example, when creating entries in a common search index) 
+## If not specified derived from the site_url
+# ckan.site_id = ckan.net
+
+## API url to use (e.g. in AJAX callbacks)
+## Enable if the API is at a different domain
+# ckan.api_url = http://www.ckan.net
+
+## html content to be inserted just before </body> tag (e.g. google analytics code)
+## NB: can use html e.g. <strong>blah</strong>
+## NB: can have multiline strings just indent following lines
+# ckan.template_footer_end = 
+
+# These three settings (ckan.log_dir, ckan.dump_dir and ckan.backup_dir) are
+# all used in cron jobs, not in CKAN itself. CKAN logging is configured 
+# in the logging configuration below
+# Directory for logs (produced by cron scripts associated with ckan)
+ckan.log_dir = %(here)s/log
+# Directory for JSON/CSV dumps (must match setting in apache config)
+ckan.dump_dir = %(here)s/dump
+# Directory for SQL database backups
+ckan.backup_dir = %(here)s/backup
+
+# Default authorizations for new domain objects
+#ckan.default_roles.Package = {"visitor": ["editor"], "logged_in": ["editor"]}
+#ckan.default_roles.Group = {"visitor": ["reader"], "logged_in": ["reader"]}
+#ckan.default_roles.System = {"visitor": ["anon_editor"], "logged_in": ["editor"]}
+#ckan.default_roles.AuthorizationGroup = {"visitor": ["reader"], "logged_in": ["reader"]}
+
+# Logging configuration
+[loggers]
+keys = root, ckan, ckanext
+
+[handlers]
+keys = console, file
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = WARNING
+handlers = console, file
+
+[logger_ckan]
+level = INFO
+handlers = console, file
+qualname = ckan
+propagate = 0
+
+[logger_ckanext]
+level = DEBUG
+handlers = console, file
+qualname = ckanext
+propagate = 0
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[handler_file]
+class = logging.handlers.RotatingFileHandler
+formatter = generic
+level = NOTSET
+args = ("ckan.log", "a", 20000000, 9)
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s] %(message)s

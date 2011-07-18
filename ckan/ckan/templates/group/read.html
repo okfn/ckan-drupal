@@ -1,0 +1,42 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+  
+  <py:def function="page_title">${c.group.display_name} - Groups</py:def>
+
+  <div py:match="content">
+   <div class="group">
+    <h2 class="head">
+      <py:if test="not c.group.title">
+        <em>No Title</em>
+      </py:if>
+
+      ${c.group.title}
+      <span class="name">(${c.group.name})</span>
+    </h2>
+
+    <div class="description">
+      ${c.group_description_formatted}
+    </div>
+
+    <py:if test="c.group_admins">
+      <h3>Administrators:</h3> 
+        <py:for each="admin in c.group_admins">
+          ${h.linked_user(admin)}
+        </py:for>
+    </py:if>      
+
+    <h3>Packages:</h3>
+    <p i18n:msg="item_count">There are ${c.page.item_count} packages in this group.</p>
+    ${c.page.pager()}
+    ${package_list(c.page.items)}
+    ${c.page.pager()}
+    
+   </div>
+  </div>
+
+  <xi:include href="layout.html" />
+</html>
+
+

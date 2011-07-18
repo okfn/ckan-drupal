@@ -1,0 +1,379 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
+
+  <!--! Herein can be found generic helper methods for a whole bunch of common
+        templating issues -->
+
+  <!--! plural(n, s, p): takes a number, a singular form and a plural form,
+        returning the appropriate form on the basis of the number specified -->
+  <py:def function="plural(num, s, p)" py:choose="num">
+    <py:when test="1">${s}</py:when>
+    <py:otherwise>${p}</py:otherwise>
+  </py:def>
+
+  <!--! nonempty(val, default): takes a variable string, and returns it or a
+        fallback 'default' string if it's blank -->
+  <py:def function="nonempty(val, default)" py:choose="val">
+    <py:when test="str(val).strip()">${val}</py:when>
+    <py:otherwise>${default}</py:otherwise>
+  </py:def>
+
+  <!--! List of tags: pass in a collection of tags and this renders the standard
+        tag listing -->
+  <ul py:def="tag_list(tags)" class="tags clearfix">
+    <li py:for="tag in tags">
+      ${h.link_to(tag['name'], h.url_for(controller='tag', action='read', id=tag['name']))}
+    </li>
+  </ul>
+  
+  <!--! List of users: pass in a collection of users and this renders the standard
+          user listing -->
+    <ul py:def="user_list(users)" class="users">
+      <li py:for="user in users">
+        ${h.linked_user(user)}
+      </li>
+    </ul>
+
+  <!--! List of packages: pass in a collection of tags and this renders the
+        standard package listing -->
+  <ul py:def="package_list(packages)" class="packages">
+    <li py:for="package in packages"
+        class="${'fullyopen' if (package.isopen() and package.resources) else None}">
+        <div class="header">
+			<span class="title">
+				${h.link_to(package.title or package.name, h.url_for(controller='package', action='read', id=package.name))}
+			</span>
+			
+			<div class="search_meta">
+        <py:if test="package.resources">
+          <ul class="package_formats">
+            <py:for each="resource in package.resources">
+              <py:if test="resource.format and not resource.format == ''">
+                <li>${resource.format}</li>
+              </py:if>
+            </py:for>
+          </ul>
+        </py:if>
+        <ul class="openness">
+          <py:if test="package.isopen()">
+            <li>
+              <a href="http://opendefinition.org/okd/" title="This package satisfies the Open Definition.">
+                  <img src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+              </a>
+            </li>
+            <li>
+              <a href="http://opendefinition.org/okd/" title="This package satisfies the Open Definition.">
+                  <img src="http://assets.okfn.org/images/ok_buttons/oc_80x15_blue.png" alt="[Open Content]" />
+              </a>
+            </li>
+          </py:if>
+          <py:if test="not package.isopen()">
+            <li>
+              <span class="closed">
+                ${h.icon('lock')} Not Openly Licensed
+              </span>
+            </li>
+          </py:if>
+        </ul>
+      </div>
+		</div>
+		<div class="extract">
+			${h.markdown_extract(package.notes)}
+		</div>
+        <!--ul py:if="package.tags" class="tags">
+          <li py:for="tag in package.tags">${tag.name}</li>
+        </ul-->
+    </li>
+  </ul>
+
+  <ul py:def="package_list_from_dict(packages)" class="packages">
+    <li py:for="package in packages"
+        class="${'fullyopen' if (package.isopen and package.get('resources')) else None}">
+        <div class="header">
+			<span class="title">
+				${h.link_to(package.get('title') or package.get('name'), h.url_for(controller='package', action='read', id=package.get('name')))}
+			</span>
+			
+			<div class="search_meta">
+        <py:if test="package.resources">
+          <ul class="package_formats">
+            <py:for each="resource in package.resources">
+              <py:if test="resource.get('format')">
+                <li>${resource.get('format')}</li>
+              </py:if>
+            </py:for>
+          </ul>
+        </py:if>
+        <ul class="openness">
+          <py:if test="package.isopen">
+            <li>
+              <a href="http://opendefinition.org/okd/" title="This package satisfies the Open Definition.">
+                  <img src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+              </a>
+            </li>
+            <li>
+              <a href="http://opendefinition.org/okd/" title="This package satisfies the Open Definition.">
+                  <img src="http://assets.okfn.org/images/ok_buttons/oc_80x15_blue.png" alt="[Open Content]" />
+              </a>
+            </li>
+          </py:if>
+          <py:if test="not package.isopen">
+            <li>
+              <span class="closed">
+                ${h.icon('lock')} Not Openly Licensed
+              </span>
+            </li>
+          </py:if>
+        </ul>
+      </div>
+		</div>
+		<div class="extract">
+			${h.markdown_extract(package.notes)}
+		</div>
+        <!--ul py:if="package.tags" class="tags">
+          <li py:for="tag in package.tags">${tag.name}</li>
+        </ul-->
+    </li>
+  </ul>
+
+  <!--! List of data package groups: pass in a collection of data package groups 
+        and this renders the standard group listing -->
+  <table py:def="group_list(groups)" class="groups">
+    <tr><th>Title</th><th>Number of packages</th><th>Description</th></tr>
+    <py:for each="group in groups">
+    <tr>
+      <td><a href="${h.url_for(controller='group', action='read', id=group.name)}">${group.display_name}</a></td>
+      <td>${len(group.packages)}</td>
+      <td>${h.truncate(group.description, length=80, whole_word=True)}</td>
+    </tr>
+    </py:for>
+  </table>
+  
+  <!--! List of authorization groups: pass in a collection of authorization groups and 
+        this renders the standard group listing -->
+  <table py:def="authorization_group_list(authorization_groups)" class="authorization_groups">
+      <tr><th>Title</th><th>Number of members</th></tr>
+      <py:for each="authorization_group in authorization_groups">
+      <tr>
+        <td><a href="${h.url_for(controller='authorization_group', action='read', id=authorization_group.name)}">
+            ${authorization_group.name}</a>
+        </td>
+        <td>${len(authorization_group.users)}</td>
+      </tr>
+      </py:for>
+    </table>
+
+  <!--! Package openness icons -->
+  <img py:def="package_license_icon(package)"
+    src="${g.site_url}/images/icons/door_${'open' if package.isopen() else 'grey'}.png"
+    title="License: ${package.license.title if hasattr(package.license, 'title') else '?'}"
+    alt="${'OPEN' if package.isopen() else 'CLOSED'}" />
+
+  <py:def function="package_resources_icon(package)" py:choose="">
+    <a py:when="package.resources"
+       href="${h.url_for(controller='package', action='read', id=package.name, anchor='resources')}">
+      <img src="${h.icon_url('arrow_down')}" title="View package resources" alt="DOWNLOAD" />
+    </a>
+
+    <img py:otherwise="" src="${h.icon_url('arrow_down_grey')}" title="No downloadable resources." alt="" />
+  </py:def>
+
+  <!--! Used by group listing -->
+  <py:def function="package_summary(pkg)">
+      <a href="${h.url_for(controller='package', action='read', id=pkg.name)}">
+         ${pkg.name} - ${pkg.title}
+      </a>
+  </py:def>
+
+  <div py:def="package_rating(pkg)" class="rating-group">
+    <py:choose test="">
+      <div py:when="c.num_ratings" class="inline-rating">
+        <ul class="stars default${'%i' % (c.current_rating or 0)}star">
+          <li class="${name}" py:for="number,name in enumerate(['one', 'two', 'three', 'four', 'five'])"></li>
+        </ul>
+        ${'%0.1f (%i rating%s)' % (c.current_rating, c.num_ratings, ('s' if c.num_ratings != 1 else ''))}
+      </div>
+      <py:otherwise>no ratings yet</py:otherwise>
+    </py:choose>
+
+    &ndash;
+    rate it now
+
+    <div class="inline-rating">
+    <ul class="stars default0star">
+      <py:for each="number,name in zip(range(1,6), ['one', 'two', 'three', 'four', 'five'])">
+      <li class="${name}">
+      <a href="${h.url_for(controller='package',action='rate',id=c.pkg.name,rating=number)}" title="${number} Star">${number}</a>
+      </li>
+      </py:for>
+    </ul>
+    </div>
+  </div><!--! /rating-group -->
+
+  <table py:def="authz_form_table(id, roles, users, user_role_dict)">
+    <tr>
+      <th> User </th>
+      <py:for each="role in roles">
+      <th> ${role} </th>
+      </py:for>
+    </tr>
+    <py:for each="user in users">
+      <tr>
+        <td>
+          ${h.linked_user(user)}
+        </td>
+        <py:for each="role in roles">
+          <td> 
+            <input type="hidden" name="${ h.literal( '%s$%s' % (user,role)) }" value="submitted"/>
+            <py:choose>
+              <py:when test="user_role_dict[(user,role)]"> 
+                <input type="checkbox" 
+                   name="${ h.literal( '%s$%s' % (user,role)) }" 
+                   checked='checked'/>
+              </py:when>
+              <py:otherwise>
+                <input type="checkbox" 
+                       name="${ h.literal( '%s$%s' % (user,role)) }" 
+                       />
+              </py:otherwise>
+            </py:choose>
+          </td>
+        </py:for>
+      </tr>
+    </py:for>
+  </table>
+
+<!-- Copy and paste of above table. Only difference when created was the h.linked_user for the  -->
+<!-- table rows. How to combine the two? -->
+  <table py:def="authz_form_group_table(id, roles, users, user_role_dict)">
+    <tr>
+      <th>User Group</th>
+      <py:for each="role in roles">
+      <th> ${role} </th>
+      </py:for>
+    </tr>
+    <py:for each="user in users">
+      <tr>
+        <td>
+          ${user}
+        </td>
+        <py:for each="role in roles">
+          <td> 
+            <input type="hidden" name="${ h.literal( '%s$%s' % (user,role)) }" value="submitted"/>
+            <py:choose>
+              <py:when test="user_role_dict[(user,role)]"> 
+                <input type="checkbox" 
+                   name="${ h.literal( '%s$%s' % (user,role)) }" 
+                   checked='checked'/>
+              </py:when>
+              <py:otherwise>
+                <input type="checkbox" 
+                       name="${ h.literal( '%s$%s' % (user,role)) }" 
+                       />
+              </py:otherwise>
+            </py:choose>
+          </td>
+        </py:for>
+      </tr>
+    </py:for>
+  </table>
+
+
+
+  <table py:def="authz_add_table(roles)">
+    <tr>
+      <th>User</th>
+      <py:for each="role in roles">
+       <th> ${role} </th>
+     </py:for>
+    </tr>
+    <tr>
+      <td>
+        <input type="textbox" name="new_user_name" class="autocomplete-user" />
+      </td>
+      <py:for each="role in roles">
+        <td> 
+          <input type="hidden" name="${ h.literal( '%s' % role) }" value="submitted"/>
+          <input type="checkbox" name="${ h.literal( '%s' % role) }"/>
+        </td>
+      </py:for>
+    </tr>
+  </table>
+
+  <!-- again, copy-and-paste of above, this time to attach different autocompletion -->
+  <table py:def="authz_add_group_table(roles)">
+    <tr>
+      <th>User Group</th>
+      <py:for each="role in roles">
+       <th> ${role} </th>
+     </py:for>
+    </tr>
+    <tr>
+      <td>
+        <input type="textbox" name="new_user_name" class="autocomplete-authzgroup" />
+      </td>
+      <py:for each="role in roles">
+        <td> 
+          <input type="hidden" name="${ h.literal( '%s' % role) }" value="submitted"/>
+          <input type="checkbox" name="${ h.literal( '%s' % role) }"/>
+        </td>
+      </py:for>
+    </tr>
+  </table>
+
+
+  <table py:def="revision_list(revisions, allow_compare=False)">
+    <tr>
+      <th>Revision</th><th>Timestamp</th><th>Author</th><th>Entity</th><th>Log Message</th>
+    </tr>
+    <tr
+      class="state-${revision.state}"
+      py:for="revision in revisions"
+      >
+      <td>
+        ${
+          h.link_to(revision.id,
+            h.url_for(
+              controller='revision',
+              action='read',
+              id=revision.id)
+            )
+        }
+        <py:if test="c.revision_change_state_allowed">
+        <div class="actions">
+          <form
+            method="POST"
+            action="${h.url_for(controller='revision',
+                action='edit',
+                id=revision.id)}"
+            >
+            <py:if test="revision.state!='deleted'">
+            <button type="submit" name="action" value="delete">Delete</button>
+            </py:if>
+            <py:if test="revision.state=='deleted'">
+            <button type="submit" name="action" value="undelete">Undelete</button>
+            </py:if>
+          </form>
+        </div>
+        </py:if>
+      </td>
+      <td>${h.render_datetime(revision.timestamp)}</td>
+      <td>${h.linked_user(revision.author)}</td>
+      <td>
+        <py:for each="pkg in revision.packages">
+          <a href="${h.url_for(controller='package', action='read', id=pkg.name)}">${pkg.name}</a>
+        </py:for>
+        <py:for each="grp in revision.groups">
+          <a href="${h.url_for(controller='group', action='read', id=grp.name)}">${grp.name}</a>
+        </py:for>
+      </td>
+      <td>${revision.message}</td>
+    </tr>
+  </table>
+
+</html>
