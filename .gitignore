@@ -1,0 +1,30 @@
+# Don't include your local settings
+drupal/sites/default/settings.php
+drupal/site/default/files
+
+
+# Ignore all python compiled files
+*.pyc
+
+
+# Eclipse .project file
+.project
+
+
+# pyenv environment
+bin/
+include/
+lib/
+man/
+src/
+
+
+# ckan local files
+ckan/build/
+ckan/ckan.egg-info/
+ckan/ckan.log
+ckan/data/
+ckan/development.ini
+
+#Drupal extension
+ckanext-drupal/ckanext_drupal.egg-info/
