@@ -116,6 +116,22 @@
       ),
     );
 
+    $services['package']['update'] = array(
+      'help' => 'Update a Package node',
+      'callback' => '_ckanrest_update',
+      'access callback' => '_ckanrest_access',
+      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'args' => array(
+        array(
+          'name' => 'data',
+          'type' => 'int',
+          'description' => 'The package node ID',
+          'source' => 'data',
+          'optional' => FALSE,
+        ),
+      ),
+    );
+
     $services['package']['delete'] = array(
       'help' => 'Delete a Package node',
       'callback' => '_ckanrest_delete',
@@ -194,76 +210,6 @@
 	}
 
 
-	function ckan_insert($node) {
-	  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
-    $ckan = new Ckan('http://127.0.0.1:5000/','bf9b6b2a-136e-40f3-826f-f5d9bd819d6b');
-
-    $jsonstring ='{
-      	"name": "%s",
- 				"title": "%s",
-  			"url": "%s",
-  			"notes": "%s",
-  			"maintainer": "%s",
-  			"maintainer_email": "%s",
-  			"license_id": "%s"
-      }';
-
-      $data = sprintf($jsonstring,
-        $node->title,
-        $node->title,
-        $node->field_url['0']['url'],
-        $node->field_notes['0']['notes'],
-        $node->field_maintainer['0']['field_maintainer'],
-        $node->field_maintainer_email['0']['maintainer_email'],
-        $node->field_license_id['0']['license_id']
-       );
-
-	  try {
-       $return = $ckan->createPackage($data);
-       // Exception should have been thrown but if not, detect if we don't have a package ID
-       $node->field_id['0']['value'] = (strlen($return->id) > 5) ? $return->id : 'invalid';
-       node_save($node);
-	  } catch (Exception $e) {
-      form_set_error('', $e->getMessage());
-
-      // Delete node if something has gone wrong
-      if (is_numeric($node->nid)) {
-        node_delete($node->nid);
-      }
-	  }
-
-	}
-
-  function ckan_update($node) {
-    require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
-    $ckan = new Ckan('http://127.0.0.1:5000/','bf9b6b2a-136e-40f3-826f-f5d9bd819d6b');
-    $jsonstring ='{
-      	"name": "%s",
-    		"title": "%s",
-    		"url": "%s",
-    		"notes": "%s",
-    		"maintainer": "%s",
-    		"maintainer_email": "%s",
-    		"license_id": "%s"
-      }';
-
-    $data = sprintf($jsonstring,
-      $node->title,
-      $node->title,
-      $node->field_url['0']['url'],
-      $node->field_notes['0']['value'],
-      $node->field_maintainer['0']['value'],
-      $node->field_maintainer_email['0']['email'],
-      $node->field_license_id['0']['value']
-    );
-    try {
-      $return = $ckan->updatePackage($data, $node->field_id['0']['value']);
-    } catch (Exception $e) {
-        form_set_error('', $e->getMessage());
-        //@todo revert revision
-    }
-
-  }
 
 /**
  * Implementation of hook_node_info().
@@ -271,24 +217,149 @@
 function ckan_node_info() {
   return array(
     'ckan_package' => array(
-      'name' => 'ckan',
+      'name' => 'Package',
       'module' => 'ckan',
-      'description' => '',
+      'description' => 'A ckan package.',
       'help' => '',
-      'has_title' => TRUE,
-      'title_label' => 'Title',
-      'has_body' => TRUE,
-      'body_label' => '',
       'min_word_count' => '',
       'locked' => FALSE,
     ),
-    // add further types as needed
   );
+}
 
+/**
+ * Implementation of hook_form().
+ *
+ * Now it's time to describe the form for collecting the information
+ * specific to this node type. This hook requires us to return an array with
+ * a sub array containing information for each element in the form.
+ */
+function ckan_form(&$node, $form_state) {
+  // The site admin can decide if this node type has a title and body, and how
+  // the fields should be labeled. We need to load these settings so we can
+  // build the node form correctly.
+  $type = node_get_types('type', $node);
+
+  if ($type->has_title) {
+    $form['title'] = array(
+      '#type' => 'textfield',
+      '#title' => check_plain($type->title_label),
+      '#required' => TRUE,
+      '#default_value' => $node->title,
+      '#weight' => -5
+    );
+  }
+
+  if ($type->has_body) {
+    // In Drupal 6, we use node_body_field() to get the body and filter
+    // elements. This replaces the old textarea + filter_form() method of
+    // setting this up. It will also ensure the teaser splitter gets set up
+    // properly.
+    $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
+  }
+
+   $form['id'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan id',
+     '#default_value' => $node->ckan['id'],
+   );
+
+
+  return $form;
+}
+
+
+/**
+ * Implementation of hook_load().
+ *
+ * Now that we've defined how to manage the node data in the database, we
+ * need to tell Drupal how to get the node back out. This hook is called
+ * every time a node is loaded, and allows us to do some loading of our own.
+ */
+function ckan_load($node) {
+  $sql = "SELECT *
+  				FROM {ckan_package}
+  				WHERE nid = %d ";
+  $additions = db_fetch_array(db_query($sql, $node->nid));
+
+  return array('ckan' => $additions);
+}
+
+/**
+ * Implementation of hook_insert().
+ *
+ * As a new node is being inserted into the database, we need to do our own
+ * database inserts.
+ */
+function ckan_insert($node) {
+  db_query("INSERT INTO {ckan_package} (nid, id) VALUES (%d, '%s')", $node->nid, $node->id);
 }
 
 
 
+/**
+ * Implementation of hook_update().
+ *
+ * As an existing node is being updated in the database, we need to do our own
+ * database updates.
+ */
+function ckan_update($node) {
+ db_query("UPDATE {ckan_package} SET id = '%s' WHERE nid = %d", $node->id, $node->nid);
+}
+
+/**
+ * Implementation of hook_view().
+ *
+ * This is a typical implementation that simply runs the node text through
+ * the output filters.
+ */
+function ckan_view($node, $teaser = FALSE, $page = FALSE) {
+  $node = node_prepare($node, $teaser);
+  $node->content['ckan'] = array(
+    '#value' => theme('ckan_package_info', $node),
+    '#weight' => 1,
+  );
+  return $node;
+}
 
 
+
+/**
+ * Implementation of hook_delete().
+ *
+ * When a node is deleted, we need to remove all related records from our table.
+ */
+function ckan_delete($node) {
+  // Notice that we're matching all revision, by using the node's nid.
+  db_query('DELETE FROM {ckan_package} WHERE nid = %d', $node->nid);
+}
+
+/**
+ * Implementation of hook_theme().
+ *
+ * This lets us tell Drupal about our theme functions and their arguments.
+ */
+function ckan_theme() {
+  return array(
+    'ckan_package_info' => array(
+      'arguments' => array('node'),
+    ),
+  );
+}
+
+/**
+ * A custom theme function.
+ *
+ * By using this function to format our node-specific information, themes
+ * can override this presentation if they wish. We also wrap the default
+ * presentation in a CSS class that is prefixed by the module name. This
+ * way, style sheets can modify the output without requiring theme code.
+ */
+function theme_ckan_package_info($node) {
+  $output = '<div class="ckan_package_info">';
+  $output .= t('Package ID: %package_id ', array('%package_id' => check_plain($node->ckan['id'])));
+  $output .= t('Name: %name ', array('%name' => check_plain($node->ckan['name'])));
+  $output .= '</div>';
+  return $output;
+}
 

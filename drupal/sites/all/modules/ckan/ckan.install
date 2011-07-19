@@ -12,3 +12,64 @@ function ckan_install() {
 function ckan_uninstall() {
 
 }
+
+function ckan_schema() {
+  $schema['ckan_package'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'id' => array(
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'type' => 'text',
+      ),
+      'version' => array(
+        'type' => 'varchar',
+        'length' => 100,
+      ),
+      'url' => array(
+        'type' => 'text',
+      ),
+      'author' => array(
+        'type' => 'text',
+      ),
+      'author_email' => array(
+        'type' => 'text',
+      ),
+      'maintainer' => array(
+        'type' => 'text',
+      ),
+      'maintainer_email' => array(
+        'type' => 'text',
+      ),
+      'notes' => array(
+        'type' => 'text',
+      ),
+      'license_id' => array(
+        'type' => 'text',
+      ),
+      'update_date' => array(
+        'type' => 'int',
+      ),
+      'state' => array(
+        'type' => 'text',
+      ),
+      'completed' => array(
+        'type' => 'int',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
