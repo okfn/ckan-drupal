@@ -239,7 +239,7 @@ function ckan_form(&$node, $form_state) {
   // the fields should be labeled. We need to load these settings so we can
   // build the node form correctly.
   $type = node_get_types('type', $node);
-
+  dsm($node);
   if ($type->has_title) {
     $form['title'] = array(
       '#type' => 'textfield',
@@ -250,13 +250,8 @@ function ckan_form(&$node, $form_state) {
     );
   }
 
-  if ($type->has_body) {
-    // In Drupal 6, we use node_body_field() to get the body and filter
-    // elements. This replaces the old textarea + filter_form() method of
-    // setting this up. It will also ensure the teaser splitter gets set up
-    // properly.
-    $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
-  }
+  $form['body'] = node_body_field($node, $type->body_label, $type->min_word_count);
+
 
   // We need a hidden ckan_id field as the disabled field value isn't passed through to the node.
   // This ckan_id is needed as a key for the api call to update this package.
@@ -270,6 +265,7 @@ function ckan_form(&$node, $form_state) {
      '#default_value' => $node->ckan['id'],
      '#disabled' => TRUE,
    );
+
    $form['ckan_name'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan name',
@@ -305,11 +301,6 @@ function ckan_form(&$node, $form_state) {
      '#type' => 'textfield',
      '#title' => 'ckan maintainer email',
      '#default_value' => $node->ckan['maintainer_email'],
-   );
-   $form['ckan_notes'] = array(
-     '#type' => 'textarea',
-     '#title' => 'ckan notes',
-     '#default_value' => $node->ckan['notes'],
    );
    $form['ckan_license_id'] = array(
      '#type' => 'select',
@@ -379,10 +370,9 @@ function ckan_insert($node) {
     "author_email"     => $node->ckan_author_email,
     "maintainer"       => $node->ckan_maintainer,
     "maintainer_email" => $node->ckan_maintainer_email,
-    "notes"            => $node->ckan_notes,
+    "notes"            => $node->body,
     "license_id"       => $node->ckan_license_id,
   );
-
 
   try {
      $return = $ckan->createPackage(json_encode($package));
@@ -409,8 +399,6 @@ function ckan_update($node) {
 require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan('http://127.0.0.1:5000','123456');
 
-  //$ckan->enableDebug();
- 
   $package= array(
     "id"               => $node->ckan_id,                 //required
     "nid"              => $node->nid,
@@ -422,11 +410,9 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
     "author_email"     => $node->ckan_author_email,
     "maintainer"       => $node->ckan_maintainer,
     "maintainer_email" => $node->ckan_maintainer_email,
-    "notes"            => $node->ckan_notes,
+    "notes"            => $node->body,
     "license_id"       => $node->ckan_license_id,
   );
-
-
 
   try {
      $return = $ckan->updatePackage(json_encode($package));
