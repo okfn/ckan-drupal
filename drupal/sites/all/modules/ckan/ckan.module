@@ -258,7 +258,13 @@ function ckan_form(&$node, $form_state) {
     $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
 
+  // We need a hidden ckan_id field as the disabled field value isn't passed through to the node.
+  // This ckan_id is needed as a key for the api call to update this package.
    $form['ckan_id'] = array(
+     '#type' => 'hidden',
+     '#value' => $node->ckan['id'],
+   );
+   $form['ckan_id_display'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan id',
      '#default_value' => $node->ckan['id'],
@@ -314,19 +320,19 @@ function ckan_form(&$node, $form_state) {
        'option2' => 'option2',
      ),
    );
-   $form['update_date'] = array(
+   $form['ckan_update_date'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan update_date',
      '#default_value' => $node->ckan['update_date'],
      '#disabled' => TRUE,
    );
-   $form['state'] = array(
+   $form['ckan_state'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan state',
      '#default_value' => $node->ckan['state'],
      '#disabled' => TRUE,
    );
-   $form['completed'] = array(
+   $form['ckan_completed'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan completed',
      '#default_value' => $node->ckan['completed'],
@@ -403,8 +409,8 @@ function ckan_update($node) {
 require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan('http://127.0.0.1:5000','123456');
 
-  $ckan->enableDebug();
-
+  //$ckan->enableDebug();
+ 
   $package= array(
     "id"               => $node->ckan_id,                 //required
     "nid"              => $node->nid,
@@ -426,11 +432,6 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
      $return = $ckan->updatePackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
-
-    // Delete node if something has gone wrong
-    if (is_numeric($node->nid)) {
-      node_delete($node->nid);
-    }
 
   }
 

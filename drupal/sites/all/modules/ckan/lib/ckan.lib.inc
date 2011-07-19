@@ -145,7 +145,7 @@ class Ckan {
     curl_close($ch);
 
     // Provide useful output when debugmode is turned on.
-    if ($this->debugmode) { var_dump($info, $result); }
+    if ($this->debugmode) { var_dump($info, $result, $data); }
 
     if (!in_array($info['http_code'], array(200,201))) {
       throw new CkanException($this->_http_exception_message($info['http_code']), $info['http_code']);
