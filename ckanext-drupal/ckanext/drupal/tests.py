@@ -37,7 +37,6 @@ class TestAction(WsgiAppCase):
 
         package = {
             'nid': 1,
-            'vid': 1,
             'author': None,
             'author_email': None,
             'extras': [{'key': u'original media','value': u'"book"'}],

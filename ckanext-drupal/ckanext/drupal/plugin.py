@@ -47,7 +47,6 @@ class Drupal(SingletonPlugin):
         new = obj_cache['new']
         changed = obj_cache['changed']
         deleted = obj_cache['deleted']
-        nid = session._context['nid']
 
         try:
             update_date = int(
@@ -133,11 +132,13 @@ class Drupal(SingletonPlugin):
                 package_rows[package_id] = update
 
         for row in inserts:
+           nid = session._context['nid']
            table = row.pop('__table') 
            row.update({'nid':nid})
            conn.execute(table.insert().values(**row))
 
         for row in updates:
+           nid = session._context['nid']
            table = row.pop('__table') 
            id = row.pop('id')
            row.update({'nid':nid})
