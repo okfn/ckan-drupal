@@ -15,20 +15,16 @@ def drupal_package_create(context, data_dict):
 
     session = context['model'].Session
     context['nid'] = data_dict.pop('nid')
-    context['vid'] = data_dict.pop('vid')
     package_create = create.package_create(context, data_dict)
     package_create['nid'] = context['nid']
-    package_create['vid'] = context['vid']
     package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
     return package_create
 
 def drupal_package_update(context, data_dict):
     session = context['model'].Session
     context['nid'] = data_dict.pop('nid')
-    context['vid'] = data_dict.pop('vid')
     package_create = update.package_update(context, data_dict)
     package_create['nid'] = context['nid']
-    package_create['vid'] = context['vid']
     package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
     return package_create
 
@@ -52,7 +48,6 @@ class Drupal(SingletonPlugin):
         changed = obj_cache['changed']
         deleted = obj_cache['deleted']
         nid = session._context['nid']
-        vid = session._context['vid']
 
         try:
             update_date = int(
@@ -139,13 +134,13 @@ class Drupal(SingletonPlugin):
 
         for row in inserts:
            table = row.pop('__table') 
-           row.update({'nid':nid, 'vid':vid})
+           row.update({'nid':nid})
            conn.execute(table.insert().values(**row))
 
         for row in updates:
            table = row.pop('__table') 
            id = row.pop('id')
-           row.update({'nid':nid, 'vid':vid})
+           row.update({'nid':nid})
            conn.execute(table.update().where(table.c.id==id).values(**row))
 
         for row in deletes:
@@ -234,7 +229,6 @@ class Drupal(SingletonPlugin):
 
         self.package_table = Table('ckan_package', self.metadata,
             Column('nid', types.Integer, unique=True),
-            Column('vid', types.Integer, unique=True),
             Column('id', types.Unicode(100), primary_key=True),
             Column('name', types.Unicode(PACKAGE_NAME_MAX_LENGTH),
                    nullable=False, unique=True),
@@ -255,7 +249,6 @@ class Drupal(SingletonPlugin):
         self.resource_table = Table(
             'ckan_resource', self.metadata,
             Column('nid', types.Integer),
-            Column('vid', types.Integer),
             ## cache of package id to make things easier
             Column('package_id', types.UnicodeText),
             ##
@@ -272,7 +265,6 @@ class Drupal(SingletonPlugin):
 
         self.package_extra_table = Table('ckan_package_extra', self.metadata,
             Column('nid', types.Integer),
-            Column('vid', types.Integer),
             Column('id', types.Unicode(100), primary_key=True),
             Column('package_id', types.UnicodeText),
             Column('key', types.UnicodeText),
