@@ -258,12 +258,61 @@ function ckan_form(&$node, $form_state) {
     $form['body_field'] = node_body_field($node, $type->body_label, $type->min_word_count);
   }
 
-   $form['id'] = array(
+   $form['ckan_id'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan id',
      '#default_value' => $node->ckan['id'],
    );
-
+   $form['ckan_name'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan name',
+     '#default_value' => $node->ckan['name'],
+   );
+   $form['ckan_title'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan title',
+     '#default_value' => $node->ckan['title'],
+   );
+   $form['ckan_version'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan version',
+     '#default_value' => $node->ckan['version'],
+   );
+   $form['ckan_url'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan name',
+     '#default_value' => $node->ckan['url'],
+   );
+   $form['ckan_author'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan author',
+     '#default_value' => $node->ckan['author'],
+   );
+   $form['ckan_author_email'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan author email',
+     '#default_value' => $node->ckan['author_email'],
+   );
+   $form['ckan_maintainer'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan maintainer',
+     '#default_value' => $node->ckan['maintainer'],
+   );
+   $form['ckan_maintainer_email'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan maintainer email',
+     '#default_value' => $node->ckan['maintainer_email'],
+   );
+   $form['ckan_notes'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan notes',
+     '#default_value' => $node->ckan['notes'],
+   );
+   $form['ckan_license_id'] = array(
+     '#type' => 'textfield',
+     '#title' => 'ckan license_id',
+     '#default_value' => $node->ckan['license_id'],
+   );
 
   return $form;
 }
@@ -292,7 +341,45 @@ function ckan_load($node) {
  * database inserts.
  */
 function ckan_insert($node) {
-  db_query("INSERT INTO {ckan_package} (nid, id) VALUES (%d, '%s')", $node->nid, $node->id);
+  dsm($node);
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  $ckan = new Ckan('http://127.0.0.1:5000','123456');
+
+  //$ckan->enableDebug();
+
+  $jsonstring ='{
+		"nid":"%d",
+    "name": "%s",
+    "title": "%s",
+    "url": "%s",
+    "notes": "%s",
+    "maintainer": "%s",
+    "maintainer_email": "%s",
+    "license_id": "%s"
+  }';
+
+  $data = sprintf($jsonstring,
+    $node->nid,
+    $node->ckan_title,
+    $node->ckan_title,
+    $node->ckan_url,
+    $node->ckan_notes,
+    $node->ckan_maintainer,
+    $node->ckan_maintainer_email,
+    $node->ckan_license_id
+  );
+
+  try {
+     $return = $ckan->createPackage($data);
+  } catch (Exception $e) {
+    form_set_error('', $e->getMessage());
+
+    // Delete node if something has gone wrong
+    if (is_numeric($node->nid)) {
+      node_delete($node->nid);
+    }
+
+  }
 }
 
 
@@ -304,7 +391,33 @@ function ckan_insert($node) {
  * database updates.
  */
 function ckan_update($node) {
- db_query("UPDATE {ckan_package} SET id = '%s' WHERE nid = %d", $node->id, $node->nid);
+ $sql = "UPDATE {ckan_package}
+ 				 SET id = '%s',
+ 				 		 name = '%s',
+ 				 		 title = '%s',
+ 				 		 version = '%s',
+ 				 		 url = '%s',
+ 				 		 author = '%s',
+ 				 		 author_email = '%s',
+ 				 		 maintainer = '%s',
+ 				 		 maintainer_email = '%s',
+ 				 		 notes = '%s',
+ 				 		 license_id = '%s'
+ 				 WHERE nid = %d";
+ db_query($sql,
+   $node->ckan_id,
+   $node->ckan_name,
+   $node->ckan_title,
+   $node->ckan_version,
+   $node->ckan_url,
+   $node->ckan_author,
+   $node->ckan_author_email,
+   $node->ckan_maintainer,
+   $node->ckan_maintainer_email,
+   $node->ckan_notes,
+   $node->ckan_license_id,
+   $node->nid
+ );
 }
 
 /**
@@ -319,6 +432,8 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
     '#value' => theme('ckan_package_info', $node),
     '#weight' => 1,
   );
+
+
   return $node;
 }
 
@@ -357,8 +472,12 @@ function ckan_theme() {
  */
 function theme_ckan_package_info($node) {
   $output = '<div class="ckan_package_info">';
-  $output .= t('Package ID: %package_id ', array('%package_id' => check_plain($node->ckan['id'])));
-  $output .= t('Name: %name ', array('%name' => check_plain($node->ckan['name'])));
+
+  foreach ( $node->ckan as $key => $value) {
+    $output .= "<p>";
+    $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value)   ));
+    $output .= "</p>";
+  }
   $output .= '</div>';
   return $output;
 }

@@ -84,7 +84,7 @@ class Ckan {
    * @link http://packages.python.org/ckan/api/version2.html CKAN api reference @endlink
    */
   private $resources = array(
-    'Package Register'  =>                '/rest/package',
+    'Package Register'  =>                '/api/action/drupal_package_create',
     'Package Entity'  =>                  '/rest/package/%s',    //PACKAGE-REF
     'Group Register'  =>                  '/rest/group',
     'Group Entity'  =>                    '/rest/%s',    //GROUP-NAME
@@ -106,7 +106,7 @@ class Ckan {
 
 
   public function __construct($url=null, $apikey=null){
-    if ($url){ $this->baseurl=$url.'api/2'; }
+    if ($url){ $this->baseurl=$url; }
     if ($apikey) { $this->apikey = $apikey; }
   }
 
