@@ -270,11 +270,6 @@ function ckan_form(&$node, $form_state) {
      '#default_value' => $node->ckan['name'],
      '#required' => TRUE,
    );
-   $form['ckan_title'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan title',
-     '#default_value' => $node->ckan['title'],
-   );
    $form['ckan_version'] = array(
      '#type' => 'textfield',
      '#title' => 'ckan version',
@@ -282,7 +277,7 @@ function ckan_form(&$node, $form_state) {
    );
    $form['ckan_url'] = array(
      '#type' => 'textfield',
-     '#title' => 'ckan name',
+     '#title' => 'ckan url',
      '#default_value' => $node->ckan['url'],
    );
    $form['ckan_author'] = array(
@@ -365,36 +360,26 @@ function ckan_load($node) {
  * database inserts.
  */
 function ckan_insert($node) {
-  //dsm($node);
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan('http://127.0.0.1:5000','123456');
 
-  //$ckan->enableDebug();
-
-  $jsonstring ='{
-		"nid":"%d",
-    "name": "%s",
-    "title": "%s",
-    "url": "%s",
-    "notes": "%s",
-    "maintainer": "%s",
-    "maintainer_email": "%s",
-    "license_id": "%s"
-  }';
-
-  $data = sprintf($jsonstring,
-    $node->nid,
-    $node->ckan_title,
-    $node->ckan_title,
-    $node->ckan_url,
-    $node->ckan_notes,
-    $node->ckan_maintainer,
-    $node->ckan_maintainer_email,
-    $node->ckan_license_id
+  $package= array(
+    "nid"              => $node->nid,            //required
+    "title"            => $node->title,
+    "name"             => $node->ckan_name,
+    "version"          => $node->ckan_version,
+    "url"              => $node->ckan_url,
+    "author"           => $node->ckan_author,
+    "author_email"     => $node->ckan_author_email,
+    "maintainer"       => $node->ckan_maintainer,
+    "maintainer_email" => $node->ckan_maintainer_email,
+    "notes"            => $node->ckan_notes,
+    "license_id"       => $node->ckan_license_id,
   );
 
+
   try {
-     $return = $ckan->createPackage($data);
+     $return = $ckan->createPackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
 
@@ -418,34 +403,27 @@ function ckan_update($node) {
 require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan('http://127.0.0.1:5000','123456');
 
-  //$ckan->enableDebug();
+  $ckan->enableDebug();
 
-  $jsonstring ='{
-    "id":"%s",
-		"nid":"%d",
-    "name": "%s",
-    "title": "%s",
-    "url": "%s",
-    "notes": "%s",
-    "maintainer": "%s",
-    "maintainer_email": "%s",
-    "license_id": "%s"
-  }';
-
-  $data = sprintf($jsonstring,
-    $node->ckan_id,
-    $node->nid,
-    $node->ckan_title,
-    $node->ckan_title,
-    $node->ckan_url,
-    $node->ckan_notes,
-    $node->ckan_maintainer,
-    $node->ckan_maintainer_email,
-    $node->ckan_license_id
+  $package= array(
+    "id"               => $node->ckan_id,                 //required
+    "nid"              => $node->nid,
+    "title"            => $node->title,
+    "name"             => $node->ckan_name,
+    "version"          => $node->ckan_version,
+    "url"              => $node->ckan_url,
+    "author"           => $node->ckan_author,
+    "author_email"     => $node->ckan_author_email,
+    "maintainer"       => $node->ckan_maintainer,
+    "maintainer_email" => $node->ckan_maintainer_email,
+    "notes"            => $node->ckan_notes,
+    "license_id"       => $node->ckan_license_id,
   );
 
+
+
   try {
-     $return = $ckan->updatePackage($data);
+     $return = $ckan->updatePackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
 
