@@ -98,7 +98,10 @@ class Ckan {
     'Package’s Revisions Entity'  =>      '/rest/package/%s/revisions',    //PACKAGE-REF
     'Revision Register'  =>               '/rest/revision',
     'Revision Entity'  =>                 '/rest/revision/%s',    //REVISION-ID
-    'License List'  =>                    '/rest/licenses',
+    'License List'  =>                    '/rest/licenses',#
+    'drupal package create' =>            '/api/action/drupal_package_create',
+    'drupal package update' =>            '/api/action/drupal_package_update',
+
   );
 
 
@@ -154,14 +157,13 @@ class Ckan {
   }
 
   public function createPackage($json){
-    $url=$this->baseurl.$this->resources['Package Register'];
+    $url=$this->baseurl.$this->resources['drupal package create'];
     $package = $this->transfer($url, 'POST', $json);
     return $package;
   }
 
-  public function updatePackage($json, $package_id){
-    $url=$this->baseurl.sprintf($this->resources['Package Entity'], $package_id);
-
+  public function updatePackage($json){
+    $url=$this->baseurl.sprintf($this->resources['drupal package update']);
     $package = $this->transfer($url, 'POST', $json);
     return $package;
   }
