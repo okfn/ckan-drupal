@@ -10,8 +10,8 @@
 function ckan_menu() {
   $items = array();
 
-  $items['admin/ckan'] = array(
-    'title' => t('ckan admin page'),
+  $items['admin/settings/ckan'] = array(
+    'title' => t('CKAN admin page'),
     'access arguments' => array('access content'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_ckan_admin_form'),
