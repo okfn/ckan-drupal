@@ -3,7 +3,35 @@
   * @file ckanresources.inc
   *
   * Callbacks for CKAN packages
+  *
+  *
+  *
   */
+
+/****************************************************************
+  Examples of usage
+
+  Index     GET   {site}{basepath}/services/package.json
+
+  Retrieve  GET   {site}{basepath}/services/package/{nid}.json
+
+  Create    POST  {site}{basepath}/services/package.json
+
+  {"data":
+    {"title" : "newtitle",
+     "body"  : "newbody"
+    }
+  }
+
+  Update    PUT   {site}{basepath}/services/package/{nid).json
+
+  {"data":
+    {"title" : "newtitle",        //optional
+     "body"  : "newbody"          //optional
+    }
+  }
+
+*****************************************************************/
 
 
  /**
@@ -119,10 +147,9 @@ function  _ckanrest_update($nid, $data) {
   // Check the node is the correct type.
   if (!$node->type == 'ckan_package') {return services_error('Not a package node.', 406);}
 
-  // Update title, body, tags, status
+  // Update title, body, tags
   $node->title = $data['title'] ?  $data['title']: $node->title ;
   $node->body = $data['body'] ?  $data['body'] : $node->body ;
-  $node->status = $data['status'] ?  $data['status'] : $node->status ;
 
   node_save($node);
   return $node;

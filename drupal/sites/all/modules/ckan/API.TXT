@@ -1,0 +1,46 @@
+ /*
+  *  API for CKAN package management
+  *
+  *  Index            | Return list of Package nids
+  *  Retrieve         | Return the data of a Package node
+  *  Create           | Create a bare Package node
+  *  Update           | Update a Package node.
+  *  Delete           | Delete a Package node
+  *  Action           |
+  *         Save      | Loads and Saves a package node.
+  *  Targeted Action  |
+  *
+  */
+
+
+Current API usage examples
+--------------------------
+
+Service calls prefixed with {site}{basepath}
+You can use the the non json calls by removing .json
+
+
+  
+Index  GET  {site}{basepath}/services/package.json
+        
+Retrieve  GET  {site}{basepath}/services/package/{nid}.json        
+
+Create  POST  {site}{basepath}/services/package.json        
+{"data":
+  {"title" : "newtitle",        
+   "body"  : "newbody"
+  }
+}
+  
+Update  PUT  {site}{basepath}/services/package/{nid).json        
+{"data":
+  {"title" : "newtitle",       //optional
+   "body"  : "newbody"         //optional
+  }
+} 
+  
+  
+  
+  
+}
+  

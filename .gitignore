@@ -9,7 +9,7 @@ drupal/site/default/files
 
 # Eclipse .project file
 .project
-
+.buildpath
 
 # pyenv environment
 bin/
