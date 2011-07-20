@@ -58,156 +58,156 @@
   *       an additional parameter must be passed indicating the index to be used.
   *     - default value: this is a value that will be passed to the method for this particular argument if no argument value is passed
   */
-  function ckan_services_resources() {
-    $services = array();
+function ckan_services_resources() {
+  $services = array();
 
-   /*
-    *  API for CKAN package management
-    *
-    *  Index            | Return list of Package nids
-    *  Retrieve         | Return the data of a Package node
-    *  Create           | Create a Package node
-    *  Update           |
-    *  Delete           | Delete a Package node
-    *  Action           |
-    *         Save      | Loads and Saves a package node.
-    *  Targeted Action  |
-    *
-    */
-
-
-    $services['package']['index'] = array(
-      'help' => 'index a package',
-      'callback' => '_ckanrest_index',
-      'access callback' => '_ckanrest_access',
-      'file' => array('file' => 'inc', 'module' => 'ckan'),
-      'args' => array( ),
-    );
-
-    $services['package']['retrieve'] = array(
-      'help' => 'Retrieves a package',
-      'callback' => '_ckanrest_retrieve',
-      'access callback' => '_ckanrest_access',
-      'file' => array('file' => 'inc', 'module' => 'ckan'),
-      'args' => array(
-        array(
-          'name' => 'nid',
-          'type' => 'int',
-          'description' => 'The nid of the ckan package to get',
-          'source' => array('path' => '0'),
-          'optional' => FALSE,
-        ),
-      ),
-    );
-
-    $services['package']['create'] = array(
-      'help' => 'Creates a Package',
-      'callback' => '_ckanrest_create',
-      'access callback' => '_ckanrest_access',
-      'file' => array('file' => 'inc', 'module' => 'ckan'),
-      'args' => array(
-        array(
-          'name' => 'data',
-          'type' => 'array',
-          'description' => 'The package object',
-          'source' => 'data',
-          'optional' => FALSE,
-        ),
-      ),
-    );
-
-    $services['package']['update'] = array(
-      'help' => 'Update a Package node',
-      'callback' => '_ckanrest_update',
-      'access callback' => '_ckanrest_access',
-      'file' => array('file' => 'inc', 'module' => 'ckan'),
-      'args' => array(
-        array(
-          'name' => 'data',
-          'type' => 'int',
-          'description' => 'The package node ID',
-          'source' => 'data',
-          'optional' => FALSE,
-        ),
-      ),
-    );
-
-    $services['package']['delete'] = array(
-      'help' => 'Delete a Package node',
-      'callback' => '_ckanrest_delete',
-      'access callback' => '_ckanrest_access',
-      'file' => array('file' => 'inc', 'module' => 'ckan'),
-      'args' => array(
-        array(
-          'name' => 'nid',
-          'type' => 'int',
-          'description' => 'The nid of the ckan package to get',
-          'source' => array('path' => '0'),
-          'optional' => FALSE,
-        ),
-      ),
-    );
-
-
-   /*
-    *  Supply a Package nid to save the node.
-    *  Needed because of direct drupal databases writes by CKAN
-    *
-    *  @todo Using actions instead of targed actions because of bugs in services 6.x-3.0-rc1
-    */
-    $services['package']['actions'] = array(
-      'save' => array(
-        'help' => 'Loads and Saves a Package node.',
-        'callback' => '_ckanrest_save',
-        'access callback' => '_ckanrest_access',
-        'file' => array('file' => 'inc', 'module' => 'ckan'),
-        'args' => array(
-          array(
-            'name' => 'nid',
-            'type' => 'int',
-            'description' => 'A valid Package node ID',
-            'source' => 'data',
-            'optional' => FALSE,
-          ),
-        ),
-      ),
-    );
-
-    return $services;
-  }
-
-
-  /**
-   * Access callback for the ckan resource.
-   *
-   * @return bool
-   *  Whether access is given or not.
-   */
-  function  _ckanrest_access() {
-  	return TRUE;
-  }
-
- /**
-  * Implementation of hook_ctools_plugin_api().
+ /*
+  *  API for CKAN package management
+  *
+  *  Index            | Return list of Package nids
+  *  Retrieve         | Return the data of a Package node
+  *  Create           | Create a bare Package node
+  *  Update           | Update (call save on) a Package node. No fields updated.
+  *  Delete           | Delete a Package node
+  *  Action           |
+  *         Save      | Loads and Saves a package node.
+  *  Targeted Action  |
+  *
   */
 
-	function ckan_ctools_plugin_api($owner, $api) {
-   return array(
-    'version' => 3,
-     'file' => 'ckan.services.inc', // Optional parameter to indicate the file name to load.
-     'path' => drupal_get_path('module', 'ckan') . '/includes', // If specifying the file key, path is required.
-	    );
-	 }
+
+  $services['package']['index'] = array(
+    'help' => 'index a package',
+    'callback' => '_ckanrest_index',
+    'access callback' => '_ckanrest_access',
+    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'args' => array( ),
+  );
+
+  $services['package']['retrieve'] = array(
+    'help' => 'Retrieves a package',
+    'callback' => '_ckanrest_retrieve',
+    'access callback' => '_ckanrest_access',
+    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'args' => array(
+      array(
+        'name' => 'nid',
+        'type' => 'int',
+        'description' => 'The nid of the ckan package to get',
+        'source' => array('path' => '0'),
+        'optional' => FALSE,
+      ),
+    ),
+  );
+
+  $services['package']['create'] = array(
+    'help' => 'Creates a Package',
+    'callback' => '_ckanrest_create',
+    'access callback' => '_ckanrest_access',
+    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'args' => array(
+      array(
+        'name' => 'data',
+        'type' => 'array',
+        'description' => 'The package object',
+        'source' => 'data',
+        'optional' => FALSE,
+      ),
+    ),
+  );
+
+  $services['package']['update'] = array(
+    'help' => 'Update a Package node',
+    'callback' => '_ckanrest_update',
+    'access callback' => '_ckanrest_access',
+    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'args' => array(
+      array(
+        'name' => 'data',
+        'type' => 'int',
+        'description' => 'The package node ID',
+        'source' => 'data',
+        'optional' => FALSE,
+      ),
+    ),
+  );
+
+  $services['package']['delete'] = array(
+    'help' => 'Delete a Package node',
+    'callback' => '_ckanrest_delete',
+    'access callback' => '_ckanrest_access',
+    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'args' => array(
+      array(
+        'name' => 'nid',
+        'type' => 'int',
+        'description' => 'The nid of the ckan package to get',
+        'source' => array('path' => '0'),
+        'optional' => FALSE,
+      ),
+    ),
+  );
 
 
-	function ckan_views_api(){
-	  // Note that you can include 'path' in this array so that your views.inc
-	  // file can be stored in a different location.
-	  return array(
-	  	'path' => drupal_get_path('module', 'ckan') . '/includes',
-	    'api' => 2.0,
-	  );
-	}
+ /*
+  *  Supply a Package nid to save the node.
+  *  Needed because of direct drupal databases writes by CKAN
+  *
+  *  @todo Using actions instead of targed actions because of bugs in services 6.x-3.0-rc1
+  */
+  $services['package']['actions'] = array(
+    'save' => array(
+      'help' => 'Loads and Saves a Package node.',
+      'callback' => '_ckanrest_save',
+      'access callback' => '_ckanrest_access',
+      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'args' => array(
+        array(
+          'name' => 'nid',
+          'type' => 'int',
+          'description' => 'A valid Package node ID',
+          'source' => 'data',
+          'optional' => FALSE,
+        ),
+      ),
+    ),
+  );
+
+  return $services;
+}
+
+
+/**
+ * Access callback for the ckan resource.
+ *
+ * @return bool
+ *  Whether access is given or not.
+ */
+function  _ckanrest_access() {
+	return TRUE;
+}
+
+/**
+* Implementation of hook_ctools_plugin_api().
+*/
+
+function ckan_ctools_plugin_api($owner, $api) {
+ return array(
+  'version' => 3,
+   'file' => 'ckan.services.inc', // Optional parameter to indicate the file name to load.
+   'path' => drupal_get_path('module', 'ckan') . '/includes', // If specifying the file key, path is required.
+    );
+ }
+
+
+function ckan_views_api(){
+  // Note that you can include 'path' in this array so that your views.inc
+  // file can be stored in a different location.
+  return array(
+  	'path' => drupal_get_path('module', 'ckan') . '/includes',
+    'api' => 2.0,
+  );
+}
 
 
 
