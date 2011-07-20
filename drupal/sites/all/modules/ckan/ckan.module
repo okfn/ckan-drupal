@@ -6,6 +6,43 @@
   */
 
 
+
+function ckan_menu() {
+  $items = array();
+
+  $items['admin/ckan'] = array(
+    'title' => t('ckan admin page'),
+    'access arguments' => array('access content'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_ckan_admin_form'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+
+function _ckan_admin_form(){
+
+  $form['ckan_connection_url'] = array(
+  '#type' => 'textfield',
+  '#title' => 'Connection url',
+  '#description' => t('e.g. http://127.0.0.1:5000'),
+  '#default_value' => t('url'),
+  );
+
+  $form['ckan_connection_api_key'] = array(
+  '#type' => 'textfield',
+  '#title' => 'Connection API key',
+  '#description' => t('Your ckan api key '),
+  '#default_value' => t('123456'),
+  );
+
+  return $form;
+}
+
+
+
  /**
   * Defines function signatures for resources available to services.
   *
@@ -215,7 +252,6 @@ function ckan_views_api(){
     'api' => 2.0,
   );
 }
-
 
 
 /**
@@ -492,4 +528,8 @@ function theme_ckan_package_info($node) {
   $output .= '</div>';
   return $output;
 }
+
+
+
+
 
