@@ -27,8 +27,8 @@ Retrieve  GET  {site}{basepath}/services/package/{nid}.json
 
 Create  POST  {site}{basepath}/services/package.json        
 {"data":
-  {"title" : "newtitle",        
-   "body"  : "newbody"
+  {"title" : "newtitle",    //required and not empty    
+   "body"  : "newbody"      //optional
   }
 }
   

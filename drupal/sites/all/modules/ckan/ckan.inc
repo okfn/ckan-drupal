@@ -8,31 +8,6 @@
   *
   */
 
-/****************************************************************
-  Examples of usage
-
-  Index     GET   {site}{basepath}/services/package.json
-
-  Retrieve  GET   {site}{basepath}/services/package/{nid}.json
-
-  Create    POST  {site}{basepath}/services/package.json
-
-  {"data":
-    {"title" : "newtitle",
-     "body"  : "newbody"
-    }
-  }
-
-  Update    PUT   {site}{basepath}/services/package/{nid).json
-
-  {"data":
-    {"title" : "newtitle",        //optional
-     "body"  : "newbody"          //optional
-    }
-  }
-
-*****************************************************************/
-
 
  /**
   *  Function for retrive
