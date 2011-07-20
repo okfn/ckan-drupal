@@ -67,7 +67,7 @@ function ckan_services_resources() {
   *  Index            | Return list of Package nids
   *  Retrieve         | Return the data of a Package node
   *  Create           | Create a bare Package node
-  *  Update           | Update (call save on) a Package node. No fields updated.
+  *  Update           | Update a Package node.
   *  Delete           | Delete a Package node
   *  Action           |
   *         Save      | Loads and Saves a package node.
@@ -127,6 +127,13 @@ function ckan_services_resources() {
         'type' => 'int',
         'description' => 'A ckan package nid to update(save)',
         'source' => array('path' => '0'),
+        'optional' => FALSE,
+      ),
+      array(
+        'name' => 'data',
+        'type' => 'array',
+        'description' => 'The package object',
+        'source' => 'data',
         'optional' => FALSE,
       ),
     ),

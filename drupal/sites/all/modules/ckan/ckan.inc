@@ -103,10 +103,10 @@ function  _ckanrest_delete($nid) {
  /**
   *  Function for action, update
   *
-  *  Here we only want to save the node. Details in the ckan_package table will be changed by ckan.
+  *  Update/save the node. Details in the ckan_package table will be changed by ckan.
   *
   */
-function  _ckanrest_update($nid) {
+function  _ckanrest_update($nid, $data) {
   $node = node_load($nid);
 
   // Check the node exists.
@@ -114,6 +114,11 @@ function  _ckanrest_update($nid) {
 
   // Check the node is the correct type.
   if (!$node->type == 'ckan_package') {return services_error('Not a package node.', 406);}
+
+  // Update title, body, tags, status
+  $node->title = $data['title'] ?  $data['title']: $node->title ;
+  $node->body = $data['body'] ?  $data['body'] : $node->body ;
+  $node->status = $data['status'] ?  $data['status'] : $node->status ;
 
   node_save($node);
   return $node;
