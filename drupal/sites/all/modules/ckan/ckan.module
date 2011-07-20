@@ -80,7 +80,7 @@ function ckan_services_resources() {
     'help' => 'index a package',
     'callback' => '_ckanrest_index',
     'access callback' => '_ckanrest_access',
-    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'file' => array('file' => 'inc', 'module' => 'ckan', 'name' => 'includes/ckan.service'),
     'args' => array( ),
   );
 
@@ -88,7 +88,7 @@ function ckan_services_resources() {
     'help' => 'Retrieves a package',
     'callback' => '_ckanrest_retrieve',
     'access callback' => '_ckanrest_access',
-    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'file' => array('file' => 'inc', 'module' => 'ckan', 'name' => 'includes/ckan.service'),
     'args' => array(
       array(
         'name' => 'nid',
@@ -104,7 +104,7 @@ function ckan_services_resources() {
     'help' => 'Creates a Package',
     'callback' => '_ckanrest_create',
     'access callback' => '_ckanrest_access',
-    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'file' => array('file' => 'inc', 'module' => 'ckan', 'name' => 'includes/ckan.service'),
     'args' => array(
       array(
         'name' => 'data',
@@ -120,7 +120,7 @@ function ckan_services_resources() {
     'help' => 'Update a Package node',
     'callback' => '_ckanrest_update',
     'access callback' => '_ckanrest_access',
-    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'file' => array('file' => 'inc', 'module' => 'ckan', 'name' => 'includes/ckan.service'),
     'args' => array(
       array(
        'name' => 'nid',
@@ -143,7 +143,7 @@ function ckan_services_resources() {
     'help' => 'Delete a Package node',
     'callback' => '_ckanrest_delete',
     'access callback' => '_ckanrest_access',
-    'file' => array('file' => 'inc', 'module' => 'ckan'),
+    'file' => array('file' => 'inc', 'module' => 'ckan', 'name' => 'includes/ckan.service'),
     'args' => array(
       array(
         'name' => 'nid',
@@ -167,7 +167,7 @@ function ckan_services_resources() {
       'help' => 'Loads and Saves a Package node.',
       'callback' => '_ckanrest_save',
       'access callback' => '_ckanrest_access',
-      'file' => array('file' => 'inc', 'module' => 'ckan'),
+      'file' => array('file' => 'inc', 'module' => 'ckan', 'name' => 'includes/ckan.service'),
       'args' => array(
         array(
           'name' => 'nid',
