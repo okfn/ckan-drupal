@@ -9,7 +9,23 @@
   */
 
 
- /**
+  /**
+  *  Function for index
+  *
+  *  @return object
+  *  The results to render
+  */
+function  _ckanrest_index() {
+  $results = array();
+  $query = "SELECT nid, title from {node}
+            WHERE type = 'ckan_package'";
+  $resource = db_query($query);
+  while ($row = db_fetch_array($resource)) $results[] = $row;
+  return $results;
+}
+
+
+/**
   *  Function for retrive
   *  @param nid
   *  The package nid used to retreive the data
@@ -24,22 +40,6 @@ function  _ckanrest_retrieve($nid) {
   $resource = db_query($query, $nid);
   $result = db_fetch_array($resource);
   return $result;
-}
-
-
- /**
-  *  Function for index
-  *
-  *  @return object
-  *  The results to render
-  */
-function  _ckanrest_index() {
-  $results = array();
-  $query = "SELECT nid from {node}
-            WHERE type = 'ckan_package'";
-  $resource = db_query($query);
-  while ($row = db_fetch_array($resource)) $results[] = $row['nid'];
-  return $results;
 }
 
 
