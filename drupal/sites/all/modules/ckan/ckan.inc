@@ -78,6 +78,9 @@ function  _ckanrest_index() {
   */
 function  _ckanrest_create($data) {
 
+  if (!array_key_exists('title', $data)) { return services_error("Not Acceptable. 'title' key missing.", 406);}
+  if (empty($data['title'])) { return services_error("Not Acceptable. 'title' can not be empty.", 406);}
+
   $response = array();
   // Check node options to see whether to publish by default.
   $package_options = variable_get('node_options_ckan_package', '1');
