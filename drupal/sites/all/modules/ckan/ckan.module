@@ -482,10 +482,12 @@ function ckan_theme() {
 function theme_ckan_package_info($node) {
   $output = '<div class="ckan_package_info">';
 
-  foreach ($node->ckan as $key => $value) {
-    $output .= "<p>";
-    $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value) ));
-    $output .= "</p>";
+  if ($node->ckan) {
+    foreach ($node->ckan as $key => $value) {
+      $output .= "<p>";
+      $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value) ));
+      $output .= "</p>";
+    }
   }
   $output .= '</div>';
   return $output;
