@@ -432,7 +432,7 @@ function ckan_load($node) {
  */
 function ckan_insert($node) {
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
-  $ckan = new Ckan('http://127.0.0.1:5000','123456');
+  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
 
   $package= array(
     "nid"              => $node->nid,            //required
@@ -470,7 +470,7 @@ function ckan_insert($node) {
  */
 function ckan_update($node) {
 require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
-  $ckan = new Ckan('http://127.0.0.1:5000','123456');
+  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
 
   $package= array(
     "id"               => $node->ckan_id,                 //required
