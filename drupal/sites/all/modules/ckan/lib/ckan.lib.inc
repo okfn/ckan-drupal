@@ -101,7 +101,7 @@ class Ckan {
     'License List'  =>                    '/rest/licenses',#
     'drupal package create' =>            '/api/action/drupal_package_create',
     'drupal package update' =>            '/api/action/drupal_package_update',
-
+    'api version' =>                      '/api',
   );
 
 
@@ -165,6 +165,12 @@ class Ckan {
   public function updatePackage($json){
     $url=$this->baseurl.sprintf($this->resources['drupal package update']);
     $package = $this->transfer($url, 'POST', $json);
+    return $package;
+  }
+
+  public function getApiVersion(){
+    $url=$this->baseurl.sprintf($this->resources['api version']);
+    $package = $this->transfer($url);
     return $package;
   }
 
