@@ -22,23 +22,25 @@ function ckan_menu() {
 }
 
 
-function _ckan_admin_form(){
+function _ckan_admin_form(&$form_state){
+
+  $form = array();
 
   $form['ckan_connection_url'] = array(
   '#type' => 'textfield',
   '#title' => 'Connection url',
   '#description' => t('e.g. http://127.0.0.1:5000'),
-  '#default_value' => t('url'),
+  '#default_value' => variable_get('ckan_connection_url', ''),
   );
 
   $form['ckan_connection_api_key'] = array(
   '#type' => 'textfield',
   '#title' => 'Connection API key',
   '#description' => t('Your ckan api key '),
-  '#default_value' => t('123456'),
+  '#default_value' => variable_get('ckan_connection_api_key', ''),
   );
 
-  return $form;
+  return system_settings_form($form);
 }
 
 
