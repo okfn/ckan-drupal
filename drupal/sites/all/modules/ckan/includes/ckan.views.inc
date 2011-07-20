@@ -251,6 +251,36 @@ function ckan_views_data()  {
 	  ),
   );
 
+  $data['ckan_package']['state'] = array(
+    'title' => t('State'),
+    'help' => t('The package state from ckan).'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_package']['completed'] = array(
+    'title' => t('Completed'),
+    'help' => t('The transaction state from ckan.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
   return $data;
 }
 
