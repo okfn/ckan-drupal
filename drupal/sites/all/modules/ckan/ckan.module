@@ -22,9 +22,37 @@ function ckan_menu() {
 }
 
 
-function _ckan_admin_form(&$form_state){
+function _ckan_admin_form(&$form_state) {
 
   $form = array();
+
+  //test connection
+
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  $url =variable_get('ckan_connection_url', '');
+  $apikey = variable_get('ckan_connection_api_key', '');
+  $ckan = new Ckan($url, $apikey);
+
+  try {
+    $connection = $ckan->getApiVersion();
+  } catch (Exception $e) {
+    drupal_set_message("Could not connect to CKAN instance at ".$url." with key ".$apikey, 'error');
+  }
+
+  if (!($connection->version >=1)) {
+    $api_message = 'Could not connect';
+  } else {
+    $api_message = "version ".$connection->version;
+  }
+
+  $form['ckan_api_version'] = array(
+    '#type' => 'textfield',
+    '#title' => 'CKAN API',
+    '#size' => 20,
+    '#value' => $api_message,
+    '#disabled' => TRUE,
+    '#description' => t('The CKAN version API'),
+  );
 
   $form['ckan_connection_url'] = array(
   '#type' => 'textfield',
