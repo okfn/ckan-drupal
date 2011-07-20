@@ -123,10 +123,10 @@ function ckan_services_resources() {
     'file' => array('file' => 'inc', 'module' => 'ckan'),
     'args' => array(
       array(
-        'name' => 'data',
+       'name' => 'nid',
         'type' => 'int',
-        'description' => 'The package node ID',
-        'source' => 'data',
+        'description' => 'A ckan package nid to update(save)',
+        'source' => array('path' => '0'),
         'optional' => FALSE,
       ),
     ),

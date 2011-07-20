@@ -13,15 +13,16 @@
   *  @return object
   *  The result to render
   */
-  function  _ckanrest_retrieve($nid) {
-    $result = array();
-    $query = "SELECT * from {node}
-              WHERE type = 'ckan_package'
-              AND nid = %d LIMIT 0,1";
-    $resource = db_query($query, $nid);
-    $result = db_fetch_array($resource);
-    return $result;
-  }
+function  _ckanrest_retrieve($nid) {
+  $result = array();
+  $query = "SELECT * from {node}
+            WHERE type = 'ckan_package'
+            AND nid = %d LIMIT 0,1";
+  $resource = db_query($query, $nid);
+  $result = db_fetch_array($resource);
+  return $result;
+}
+
 
  /**
   *  Function for index
@@ -29,14 +30,14 @@
   *  @return object
   *  The results to render
   */
-  function  _ckanrest_index() {
-    $results = array();
-    $query = "SELECT nid from {node}
-              WHERE type = 'ckan_package'";
-    $resource = db_query($query);
-    while ($row = db_fetch_array($resource)) $results[] = $row['nid'];
-    return $results;
-  }
+function  _ckanrest_index() {
+  $results = array();
+  $query = "SELECT nid from {node}
+            WHERE type = 'ckan_package'";
+  $resource = db_query($query);
+  while ($row = db_fetch_array($resource)) $results[] = $row['nid'];
+  return $results;
+}
 
 
  /**
@@ -47,72 +48,73 @@
   *  rest of the update. node_save will invoke any hook_nodeapi hooks.
   *
   */
-  function  _ckanrest_create($data) {
+function  _ckanrest_create($data) {
 
-    $response = array();
-    $pnode = new stdClass();
-    $pnode->type = 'package';
-    $pnode->title = $data['title'];
-    $pnode->body =  $data['body'];
-    $pnode->uid = 1;
-    $pnode->name = "admin";
-    $pnode->status = 1;
-    node_save($pnode);
+  $response = array();
+  $pnode = new stdClass();
+  $pnode->type = 'ckan_package';
+  $pnode->title = $data['title'];
+  $pnode->body =  $data['body'];
+  $pnode->uid = 1;
+  $pnode->name = "admin";
+  $pnode->status = 1;
+  node_save($pnode);
 
-    //Check the node has been saved
-    if (isset($pnode->nid)) {
-      $response = $pnode;
-    } else {
-      // You shouldn't get here.
-      return services_error('Node has no nid.', 406);
-    }
-
-  return $response;
+  //Check the node has been saved
+  if (isset($pnode->nid)) {
+    $response = $pnode;
+  } else {
+    // You shouldn't get here.
+    return services_error('Node has no nid.', 406);
   }
+
+return $response;
+}
+
 
  /**
   *  Function for Delete
   *
   */
-  function  _ckanrest_delete($nid) {
+function  _ckanrest_delete($nid) {
 
-    $response = array();
+  $response = array();
 
-    $query = "SELECT * from {node}
-              WHERE nid = %d LIMIT 0,1";
-    $resource = db_query($query, $nid);
-    $result = db_fetch_array($resource);
+  $query = "SELECT * from {node}
+            WHERE nid = %d LIMIT 0,1";
+  $resource = db_query($query, $nid);
+  $result = db_fetch_array($resource);
 
-    if (!$result['nid']) { return services_error('Can not find node', 406); }
+  if (!$result['nid']) { return services_error('Can not find node', 406); }
 
-    if ($result['type'] == 'package') {
-      node_delete($nid);
+  if ($result['type'] == 'ckan_package') {
+    node_delete($nid);
 
-      //check if you have access to delete the node
+    //check if you have access to delete the node
 
-      return array('deleted'=>$nid, 'more' =>$result['nid']);
-    } else {
-      return services_error('Not a package node.', 406);
-    }
-
+    return array('deleted'=>$nid, 'more' =>$result['nid']);
+  } else {
+    return services_error('Not a package node.', 406);
   }
+
+}
 
 
  /**
-  *  Function for action, save
+  *  Function for action, update
+  *
+  *  Here we only want to save the node. Details in the ckan_package table will be changed by ckan.
   *
   */
-  function  _ckanrest_save($nid) {
-      $node = node_load($nid);
+function  _ckanrest_update($nid) {
+  $node = node_load($nid);
 
-    if ($node->type == 'package') {
-      $node->status = 0;
-      //node_save($node);
-      return $node;
-    } else {
-      return services_error('Not a package node.', 406);
-    }
+  // Check the node exists.
+  if (!$node->nid) {return services_error('Not a node.', 404);}
 
-  }
+  // Check the node is the correct type.
+  if (!$node->type == 'ckan_package') {return services_error('Not a package node.', 406);}
 
-
+  node_save($node);
+  return $node;
+}
