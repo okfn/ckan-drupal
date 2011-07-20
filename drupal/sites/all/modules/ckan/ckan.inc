@@ -51,13 +51,17 @@ function  _ckanrest_index() {
 function  _ckanrest_create($data) {
 
   $response = array();
+  // Check node options to see whether to publish by default.
+  $package_options = variable_get('node_options_ckan_package', '1');
+  $publish = in_array('status', $package_options);
+
   $pnode = new stdClass();
   $pnode->type = 'ckan_package';
   $pnode->title = $data['title'];
   $pnode->body =  $data['body'];
   $pnode->uid = 1;
   $pnode->name = "admin";
-  $pnode->status = 1;
+  $pnode->status = $publish;
   node_save($pnode);
 
   //Check the node has been saved
