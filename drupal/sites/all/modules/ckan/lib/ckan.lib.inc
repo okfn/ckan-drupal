@@ -84,7 +84,7 @@ class Ckan {
    * @link http://packages.python.org/ckan/api/version2.html CKAN api reference @endlink
    */
   private $resources = array(
-    'Package Register'  =>                '/api/action/drupal_package_create',
+    'Package Register'  =>                '/rest/package',
     'Package Entity'  =>                  '/rest/package/%s',    //PACKAGE-REF
     'Group Register'  =>                  '/rest/group',
     'Group Entity'  =>                    '/rest/%s',    //GROUP-NAME
