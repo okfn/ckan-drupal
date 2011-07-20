@@ -227,6 +227,7 @@ function ckan_node_info() {
   );
 }
 
+
 /**
  * Implementation of hook_form().
  *
@@ -239,19 +240,16 @@ function ckan_form(&$node, $form_state) {
   // the fields should be labeled. We need to load these settings so we can
   // build the node form correctly.
   $type = node_get_types('type', $node);
-  dsm($node);
-  if ($type->has_title) {
-    $form['title'] = array(
-      '#type' => 'textfield',
-      '#title' => check_plain($type->title_label),
-      '#required' => TRUE,
-      '#default_value' => $node->title,
-      '#weight' => -5
-    );
-  }
+
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => check_plain($type->title_label),
+    '#required' => TRUE,
+    '#default_value' => $node->title,
+    '#weight' => -5
+  );
 
   $form['body'] = node_body_field($node, $type->body_label, $type->min_word_count);
-
 
   // We need a hidden ckan_id field as the disabled field value isn't passed through to the node.
   // This ckan_id is needed as a key for the api call to update this package.
@@ -307,8 +305,9 @@ function ckan_form(&$node, $form_state) {
      '#title' => 'ckan license_id',
      '#default_value' => $node->ckan['license_id'],
      '#options' => array(
-       'option1' => 'option1',
-       'option2' => 'option2',
+       '' => '',
+       'licensevalue1' => 'license1',
+       'licensevalue2' => 'license2',
      ),
    );
    $form['ckan_update_date'] = array(
@@ -347,8 +346,10 @@ function ckan_load($node) {
   				WHERE nid = %d ";
   $additions = db_fetch_array(db_query($sql, $node->nid));
 
+  // Put the loaded information into a ckan key to avoid naming collisions.
   return array('ckan' => $additions);
 }
+
 
 /**
  * Implementation of hook_insert().
@@ -388,7 +389,6 @@ function ckan_insert($node) {
 }
 
 
-
 /**
  * Implementation of hook_update().
  *
@@ -420,8 +420,8 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
     form_set_error('', $e->getMessage());
 
   }
-
 }
+
 
 /**
  * Implementation of hook_view().
@@ -435,11 +435,8 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
     '#value' => theme('ckan_package_info', $node),
     '#weight' => 1,
   );
-
-
   return $node;
 }
-
 
 
 /**
@@ -451,6 +448,7 @@ function ckan_delete($node) {
   // Notice that we're matching all revision, by using the node's nid.
   db_query('DELETE FROM {ckan_package} WHERE nid = %d', $node->nid);
 }
+
 
 /**
  * Implementation of hook_theme().
@@ -465,6 +463,7 @@ function ckan_theme() {
   );
 }
 
+
 /**
  * A custom theme function.
  *
@@ -476,9 +475,9 @@ function ckan_theme() {
 function theme_ckan_package_info($node) {
   $output = '<div class="ckan_package_info">';
 
-  foreach ( $node->ckan as $key => $value) {
+  foreach ($node->ckan as $key => $value) {
     $output .= "<p>";
-    $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value)   ));
+    $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value) ));
     $output .= "</p>";
   }
   $output .= '</div>';
