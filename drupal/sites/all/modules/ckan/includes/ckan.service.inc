@@ -99,13 +99,13 @@ function  _ckanrest_delete($nid) {
 
   if ($result['type'] == 'ckan_package') {
     //@todo Unsafe user switching. Either change code or complete API authorisation work.
-      global $user;
+    global $user;
     $original_user = $user;
     $user = user_load(1);
     node_delete($nid);
     $user = $original_user;
 
-    return array('deleted'=>$nid, 'more' =>$result['nid']);
+    return array('deleted'=>$nid);
   } else {
     return services_error('Not a package node.', 406);
   }
