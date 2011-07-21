@@ -1,36 +1,23 @@
 import datetime
 from sqlalchemy import types, Column, Table
-from sqlalchemy.sql import select, and_
+from sqlalchemy.sql import select, and_, or_
 from sqlalchemy import MetaData, create_engine
 import json
 import time
+import urllib2
 
-from ckan.plugins import IConfigurer, ISession
+from ckan.plugins import IConfigurer, ISession, IActions
 from ckan.plugins import implements, SingletonPlugin
 import ckan.model as model
 from ckan.logic.action import create, update
 from ckan.controllers.api import ApiController
+from ckan.logic import NotFound, NotAuthorized, ValidationError
 
-def drupal_package_create(context, data_dict):
-
-    session = context['model'].Session
-    context['nid'] = data_dict.pop('nid')
-    package_create = create.package_create(context, data_dict)
-    package_create['nid'] = context['nid']
-    package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
-    return package_create
-
-def drupal_package_update(context, data_dict):
-    session = context['model'].Session
-    context['nid'] = data_dict.pop('nid')
-    package_create = update.package_update(context, data_dict)
-    package_create['nid'] = context['nid']
-    package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
-    return package_create
 
 class Drupal(SingletonPlugin):
     '''initial test of plugin'''
     implements(IConfigurer)
+    implements(IActions)
     implements(ISession, inherit=True)
 
     def get_package_row(self, conn, package_id):
@@ -212,6 +199,73 @@ class Drupal(SingletonPlugin):
         finally:
             conn.close()
 
+    def drupal_package_create(self, context, data_dict):
+
+        session = context['model'].Session
+        context['nid'] = data_dict.pop('nid')
+        package_create = create.package_create(context, data_dict)
+        package_create['nid'] = context['nid']
+        package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
+        return package_create
+
+    def drupal_package_update(self, context, data_dict):
+        session = context['model'].Session
+        context['nid'] = data_dict.pop('nid')
+        package_create = update.package_update(context, data_dict)
+        package_create['nid'] = context['nid']
+        package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
+        return package_create
+
+    def package_create(self, context, data_dict):
+
+        preview = context.get('preview', False)
+        if preview:
+            return
+        session = context['model'].Session
+        url = 'http://0.0.0.0/ckan-drupal/drupal/services/package.json'
+        data = json.dumps({'data': data_dict})
+        req = urllib2.Request(url, data, {'Content-type': 'application/json'})
+        ##XXX think about error conditions a bit more
+        try:
+            f = urllib2.urlopen(req, None, 3)
+            drupal_info = json.loads(f.read())
+        finally:
+            f.close()
+        nid = drupal_info['nid']
+        context['nid'] = nid
+        package_create = create.package_create(context, data_dict)
+        package_create['nid'] = context['nid']
+        package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
+        return package_create
+
+    def package_update(self, context, data_dict):
+        preview = context.get('preview', False)
+        if preview:
+            return
+        if 'id' not in data_dict:
+            raise NotFound
+        result = self.engine.execute(
+                select(
+                    [self.package_table.c.nid],
+                    or_(self.package_table.c.id == data_dict['id'],
+                        self.package_table.c.name == data_dict['id'])
+                )
+        ).fetchone()
+        if not result:
+            raise NotFound
+        session = context['model'].Session
+        context['nid'] = result['nid']
+        package_update = update.package_update(context, data_dict)
+        package_update['nid'] = result['nid']
+        package_update['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
+        return package_update
+
+    def get_actions(self):
+        return {'drupal_package_create': self.drupal_package_create,
+                'drupal_package_update': self.drupal_package_update,
+                'package_create': self.package_create,
+                'package_update': self.package_update}
+
     def update_config(self, config):
         config['ckan.site_title'] = 'CKAN-Drupal'
 
@@ -222,11 +276,6 @@ class Drupal(SingletonPlugin):
 
         PACKAGE_NAME_MAX_LENGTH = 100
         PACKAGE_VERSION_MAX_LENGTH = 100
-
-        ApiController.register_action('drupal_package_create',
-                                       drupal_package_create)
-        ApiController.register_action('drupal_package_update',
-                                       drupal_package_update)
 
         self.package_table = Table('ckan_package', self.metadata,
             Column('nid', types.Integer, unique=True),
