@@ -28,9 +28,12 @@ class TestAction(WsgiAppCase):
         cls.extra_table = Table('ckan_package_extra',
                                   cls.metadata,
                                   autoload = True)
-        cls.resource_table = Table('ckan_package_extra',
+        cls.resource_table = Table('ckan_resource',
                                   cls.metadata,
                                   autoload = True)
+        cls.engine.execute('delete from ckan_package')
+        cls.engine.execute('delete from ckan_resource')
+        cls.engine.execute('delete from ckan_package_extra')
 
 
     def test_01_create_update_package(self):
