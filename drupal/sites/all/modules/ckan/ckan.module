@@ -417,10 +417,19 @@ function ckan_load($node) {
   $sql = "SELECT *
   				FROM {ckan_package}
   				WHERE nid = %d ";
-  $additions = db_fetch_array(db_query($sql, $node->nid));
-
   // Put the loaded information into a ckan key to avoid naming collisions.
-  return array('ckan' => $additions);
+  $additions['ckan'] = db_fetch_array(db_query($sql, $node->nid));
+
+  // Load the resources too.
+  $sql = "SELECT *
+  				FROM {ckan_resource}
+  				WHERE nid = %d ";
+  $result = db_query($sql, $node->nid);
+  while ($row = db_fetch_array($result)) {
+    $additions['ckan']['resource'][] = $row;
+  }
+
+  return $additions;
 }
 
 
@@ -508,6 +517,10 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
     '#value' => theme('ckan_package_info', $node),
     '#weight' => 1,
   );
+  $node->content['ckan']['resource'] = array(
+    '#value' => theme('ckan_package_resource_info', $node),
+    '#weight' => 1,
+  );
   return $node;
 }
 
@@ -533,6 +546,9 @@ function ckan_theme() {
     'ckan_package_info' => array(
       'arguments' => array('node'),
     ),
+   'ckan_package_resource_info' => array(
+      'arguments' => array('node'),
+    ),
   );
 }
 
@@ -550,6 +566,7 @@ function theme_ckan_package_info($node) {
 
   if ($node->ckan) {
     foreach ($node->ckan as $key => $value) {
+      if (is_array($value)) continue; // Don't process arrays
       $output .= "<p>";
       $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value) ));
       $output .= "</p>";
@@ -559,7 +576,23 @@ function theme_ckan_package_info($node) {
   return $output;
 }
 
+/**
+ * A custom theme function to render resources
+ *
+ */
+function theme_ckan_package_resource_info($node) {
+  $output = '<div class="ckan_package_resource_info"> <ul><h4>Resources</h4>';
 
+  if ($node->ckan['resource']) {
+    foreach ($node->ckan['resource'] as $key => $value) {
+      $output .= "<li>";
+      $output .= t('%keyname : %value ', array('%keyname' => check_plain($key)."", '%value' => $value['url'] ));
+      $output .= "</li>";
+    }
+  }
+  $output .= '</ul></div>';
+  return $output;
+}
 
 
 
