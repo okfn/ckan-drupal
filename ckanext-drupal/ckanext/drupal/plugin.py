@@ -223,9 +223,7 @@ class Drupal(SingletonPlugin):
         if preview:
             return
         session = context['model'].Session
-        print self.base_url
         url = urlparse.urljoin(self.base_url, 'services/package.json')
-        print url
         data_dict['body'] = data_dict['notes']
         data = json.dumps({'data': data_dict})
         req = urllib2.Request(url, data, {'Content-type': 'application/json'})
@@ -266,7 +264,6 @@ class Drupal(SingletonPlugin):
         req.get_method = lambda: 'PUT'
         ##XXX think about error conditions a bit more
         f = urllib2.urlopen(req, None, 3)
-        print f
         try:
             drupal_info = json.loads(f.read())
         finally:
