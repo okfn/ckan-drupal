@@ -212,10 +212,10 @@ class Drupal(SingletonPlugin):
     def drupal_package_update(self, context, data_dict):
         session = context['model'].Session
         context['nid'] = data_dict.pop('nid')
-        package_create = update.package_update(context, data_dict)
-        package_create['nid'] = context['nid']
-        package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
-        return package_create
+        package_update = update.package_update(context, data_dict)
+        package_update['nid'] = context['nid']
+        package_update['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
+        return package_update
 
     def package_create(self, context, data_dict):
 
@@ -266,6 +266,7 @@ class Drupal(SingletonPlugin):
         req.get_method = lambda: 'PUT'
         ##XXX think about error conditions a bit more
         f = urllib2.urlopen(req, None, 3)
+        print f
         try:
             drupal_info = json.loads(f.read())
         finally:
