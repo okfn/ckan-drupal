@@ -98,9 +98,12 @@ function  _ckanrest_delete($nid) {
   if (!$result['nid']) { return services_error('Can not find node', 406); }
 
   if ($result['type'] == 'ckan_package') {
+    //@todo Unsafe user switching. Either change code or complete API authorisation work.
+      global $user;
+    $original_user = $user;
+    $user = user_load(1);
     node_delete($nid);
-
-    //check if you have access to delete the node
+    $user = $original_user;
 
     return array('deleted'=>$nid, 'more' =>$result['nid']);
   } else {

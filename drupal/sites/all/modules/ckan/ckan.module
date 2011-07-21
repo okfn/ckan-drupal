@@ -215,7 +215,7 @@ function ckan_services_resources() {
       array(
         'name' => 'nid',
         'type' => 'int',
-        'description' => 'The nid of the ckan package to get',
+        'description' => 'The nid of the ckan package to delete',
         'source' => array('path' => '0'),
         'optional' => FALSE,
       ),

@@ -39,8 +39,8 @@ Update  PUT  {site}{basepath}/services/package/{nid).json
   }
 } 
   
+Update  DELETE  {site}{basepath}/services/package/{nid).json        
+ 
   
   
-  
-}
   
