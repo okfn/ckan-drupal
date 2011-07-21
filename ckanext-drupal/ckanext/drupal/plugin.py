@@ -260,13 +260,12 @@ class Drupal(SingletonPlugin):
         nid = result['nid']
         data_dict['body'] = data_dict['notes']
 
-        url = urlparse.urljoin(self.base_url, 'services/package.json')
+        url = urlparse.urljoin(self.base_url, 'services/package/%s.json' % (nid))
         data = json.dumps({'data': data_dict})
         req = urllib2.Request(url, data, {'Content-type': 'application/json'})
         req.get_method = lambda: 'PUT'
         ##XXX think about error conditions a bit more
         f = urllib2.urlopen(req, None, 3)
-        print f
         try:
             drupal_info = json.loads(f.read())
         finally:
