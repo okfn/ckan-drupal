@@ -318,7 +318,7 @@ function ckan_form(&$node, $form_state) {
     '#type' => 'textfield',
     '#title' => check_plain($type->title_label),
     '#required' => TRUE,
-    '#default_value' => $node->title,
+    '#default_value' => $node->ckan['title'],
     '#weight' => -5
   );
 
