@@ -91,3 +91,57 @@ class TestAction(WsgiAppCase):
         pprint(package_created)
         assert package_updated == package_created#, (pformat(json.loads(res.body)), pformat(package_created['result']))
 
+    def test_02_create_validation_error(self):
+
+        package = {
+            'nid': 2,
+            'vid': 2,
+            'author': None,
+            'author_email': None,
+            'license_id': u'other-open',
+            'maintainer': None,
+            'maintainer_email': None,
+            'name': u'moo1 fdsfsfsafds',
+            'notes': u'Some test now',
+            'title': u'A Novel By Tolstoy',
+            'url': u'http://www.annakarenina.com',
+            'version': u'0.7a'
+        }
+
+        wee = json.dumps(package)
+        postparams = '%s=1' % json.dumps(package)
+        res = self.app.post('/api/action/package_create_validate', params=postparams,
+                            extra_environ={'Authorization': 'tester'}, status=409)
+        error = json.loads(res.body)['error']
+
+        assert error ==  {u'__type': u'Validtion Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}
+
+    def test_03_update_validation_error(self):
+
+        id = model.Package.get('moo2').id
+
+        package = {
+            'nid': 2,
+            'vid': 2,
+            'id': id,
+            'author': None,
+            'author_email': None,
+            'license_id': u'other-open',
+            'maintainer': None,
+            'maintainer_email': None,
+            'name': u'moo1 fdsfsfsafds',
+            'notes': u'Some test now',
+            'title': u'A Novel By Tolstoy',
+            'url': u'http://www.annakarenina.com',
+            'version': u'0.7a'
+        }
+
+        wee = json.dumps(package)
+        postparams = '%s=1' % json.dumps(package)
+        res = self.app.post('/api/action/package_update_validate', params=postparams,
+                            extra_environ={'Authorization': 'tester'}, status=409)
+        error = json.loads(res.body)['error']
+
+        assert error ==  {u'__type': u'Validtion Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}
+
+
