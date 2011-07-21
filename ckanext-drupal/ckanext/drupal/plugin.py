@@ -5,6 +5,7 @@ from sqlalchemy import MetaData, create_engine
 import json
 import time
 import urllib2
+import urlparse
 
 from ckan.plugins import IConfigurer, ISession, IActions
 from ckan.plugins import implements, SingletonPlugin
@@ -222,13 +223,15 @@ class Drupal(SingletonPlugin):
         if preview:
             return
         session = context['model'].Session
-        url = 'http://0.0.0.0/ckan-drupal/drupal/services/package.json'
+        print self.base_url
+        url = urlparse.urljoin(self.base_url, 'services/package.json')
+        print url
         data_dict['body'] = data_dict['notes']
         data = json.dumps({'data': data_dict})
         req = urllib2.Request(url, data, {'Content-type': 'application/json'})
         ##XXX think about error conditions a bit more
+        f = urllib2.urlopen(req, None, 3)
         try:
-            f = urllib2.urlopen(req, None, 3)
             drupal_info = json.loads(f.read())
         finally:
             f.close()
@@ -257,7 +260,7 @@ class Drupal(SingletonPlugin):
         nid = result['nid']
         data_dict['body'] = data_dict['notes']
 
-        url = 'http://0.0.0.0/ckan-drupal/drupal/services/package/%s.json' % nid 
+        url = urlparse.urljoin(self.base_url, 'services/package.json')
         data = json.dumps({'data': data_dict})
         req = urllib2.Request(url, data, {'Content-type': 'application/json'})
         req.get_method = lambda: 'PUT'
@@ -285,6 +288,7 @@ class Drupal(SingletonPlugin):
         config['ckan.site_title'] = 'CKAN-Drupal'
 
         url = config['drupal.db_url'] 
+        self.base_url = config['drupal.base_url'] 
 
         self.engine = create_engine(url, echo=True)
         self.metadata = MetaData(self.engine)
