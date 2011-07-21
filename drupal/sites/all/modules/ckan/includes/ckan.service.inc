@@ -58,8 +58,13 @@ function  _ckanrest_create($data) {
 
   $response = array();
   // Check node options to see whether to publish by default.
-  $package_options = variable_get('node_options_ckan_package', '1');
-  $publish = in_array('status', $package_options);
+  $package_options = variable_get('node_options_ckan_package', 'use_default');
+  // If we haven't change the node type yet, use drupal's default.
+  if ($package_options == 'use_default') {
+    $publish = TRUE;
+  } else {
+    $publish = in_array('status', $package_options);
+  }
 
   $pnode = new stdClass();
   $pnode->type = 'ckan_package';
