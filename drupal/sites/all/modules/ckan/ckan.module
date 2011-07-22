@@ -571,7 +571,8 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
  * the output filters.
  */
 function ckan_view($node, $teaser = FALSE, $page = FALSE) {
-  $node = node_prepare($node, $teaser);
+
+  drupal_add_js("/misc/collapse.js");
   $node->content['ckan'] = array(
     '#value' => theme('ckan_package_info', $node),
     '#weight' => 1,
@@ -622,17 +623,17 @@ function ckan_theme() {
  * way, style sheets can modify the output without requiring theme code.
  */
 function theme_ckan_package_info($node) {
-  $output = '<div class="ckan_package_info"><hr /><h4>Package</h4>';
+  $output = '<div class="ckan_package_info"><h4>Package</h4><ul>';
 
   if ($node->ckan) {
     foreach ($node->ckan as $key => $value) {
       if (is_array($value)) continue; // Don't process arrays
-      $output .= "<p>";
+      $output .= "<li>";
       $output .= t('%keyname : %value ', array('%keyname' => check_plain($key), '%value' => check_plain($value) ));
-      $output .= "</p>";
+      $output .= "</li>";
     }
   }
-  $output .= '</div>';
+  $output .= '</ul></div>';
   return $output;
 }
 
@@ -641,12 +642,14 @@ function theme_ckan_package_info($node) {
  *
  */
 function theme_ckan_package_resource_info($node) {
-  $output = '<div class="ckan_package_resource_info"><hr /><h4>Resources</h4>';
+  $output = '<fieldset class="collapsible" ><legend>Resources</legend><div>';
 
   if ($node->ckan['resource']) {
     $i =0;
     foreach ($node->ckan['resource'] as $resource) {
-      $output .= "<ul><p>Resource </p>";
+      $i++;
+      $output .= "<ul><p>Resource ".$i."</p>";
+
       foreach ($resource as $key => $value) {
         $output .= "<li>";
         $output .= t('%keyname : %value ', array('%keyname' => check_plain($key)."", '%value' => $value ));
@@ -655,7 +658,7 @@ function theme_ckan_package_resource_info($node) {
       $output .= "</ul>";
     }
   }
-  $output .= '</div>';
+  $output .= '</div></fieldset>';
   return $output;
 }
 
