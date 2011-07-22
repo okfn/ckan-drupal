@@ -425,7 +425,8 @@ function ckan_form(&$node, $form_state) {
     $form['ckan']['resource'][$delta] = array(
       '#type' => 'fieldset',
       '#title' => 'Resource'.$delta,
-       '#tree' => TRUE,
+      '#tree' => TRUE,
+      '#collapsible' => TRUE,
     );
 
     //@todo Bad urls return 409, so try to validate
@@ -621,7 +622,7 @@ function ckan_theme() {
  * way, style sheets can modify the output without requiring theme code.
  */
 function theme_ckan_package_info($node) {
-  $output = '<div class="ckan_package_info">';
+  $output = '<div class="ckan_package_info"><hr /><h4>Package</h4>';
 
   if ($node->ckan) {
     foreach ($node->ckan as $key => $value) {
@@ -640,20 +641,21 @@ function theme_ckan_package_info($node) {
  *
  */
 function theme_ckan_package_resource_info($node) {
-  $output = '<div class="ckan_package_resource_info"> <ul><h4>Resources</h4>';
+  $output = '<div class="ckan_package_resource_info"><hr /><h4>Resources</h4>';
 
   if ($node->ckan['resource']) {
+    $i =0;
     foreach ($node->ckan['resource'] as $resource) {
-      $output .= "<li><p>Resource</p>";
+      $output .= "<ul><p>Resource </p>";
       foreach ($resource as $key => $value) {
         $output .= "<li>";
         $output .= t('%keyname : %value ', array('%keyname' => check_plain($key)."", '%value' => $value ));
         $output .= "</li>";
       }
-      $output .= "</li>";
+      $output .= "</ul>";
     }
   }
-  $output .= '</ul></div>';
+  $output .= '</div>';
   return $output;
 }
 
