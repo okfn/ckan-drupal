@@ -447,6 +447,11 @@ function ckan_form(&$node, $form_state) {
       '#default_value' => $node->ckan['resource'][$delta]['format'],
     );
 
+    // Add a hidden Resource id to determine new resources.
+    $form['ckan']['resource'][$delta]['id'] = array(
+      '#type' => 'hidden',
+      '#_value' => $node->ckan['resource'][$delta]['id'],
+    );
 
 
   }
