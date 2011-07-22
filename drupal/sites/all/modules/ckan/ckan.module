@@ -258,7 +258,7 @@ function ckan_services_resources() {
  *  Whether access is given or not.
  */
 function  _ckanrest_access() {
-	return TRUE;
+  return TRUE;
 }
 
 /**
@@ -278,7 +278,7 @@ function ckan_views_api(){
   // Note that you can include 'path' in this array so that your views.inc
   // file can be stored in a different location.
   return array(
-  	'path' => drupal_get_path('module', 'ckan') . '/includes',
+    'path' => drupal_get_path('module', 'ckan') . '/includes',
     'api' => 2.0,
   );
 }
@@ -403,6 +403,43 @@ function ckan_form(&$node, $form_state) {
      '#disabled' => TRUE,
    );
 
+   $form['ckan_resource'] = array(
+     '#prefix' => '<div id="ckan-package-resource"><h2>Resources:</h2>',
+     '#suffix' => '</div>',
+     '#type' => 'fieldset',
+   );
+
+  // Add resources fieldsets to the form.
+  for ($delta = 0; $delta < (count($node->ckan['resource'])+1); $delta++) {
+
+    $text = isset($node->ckan['resource']['id']) ? $node->ckan['resource']['id'] : '';
+
+    $form['ckan_resource']['ckan_resource_'.$delta] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Resource'.$delta,
+    );
+
+    $form['ckan_resource']['ckan_resource_'.$delta]['url'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Resource'.$delta.' url',
+      '#default_value' => $node->ckan['resource'][$delta]['url'],
+    );
+
+    $form['ckan_resource']['ckan_resource_'.$delta]['description'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Resource'.$delta.' description',
+      '#default_value' => $node->ckan['resource'][$delta]['description'],
+    );
+
+    $form['ckan_resource']['ckan_resource_'.$delta]['format'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Resource'.$delta.' format',
+      '#default_value' => $node->ckan['resource'][$delta]['format'],
+    );
+
+
+
+  }
   return $form;
 }
 
@@ -416,15 +453,15 @@ function ckan_form(&$node, $form_state) {
  */
 function ckan_load($node) {
   $sql = "SELECT *
-  				FROM {ckan_package}
-  				WHERE nid = %d ";
+          FROM {ckan_package}
+          WHERE nid = %d ";
   // Put the loaded information into a ckan key to avoid naming collisions.
   $additions['ckan'] = db_fetch_array(db_query($sql, $node->nid));
 
   // Load the resources too.
   $sql = "SELECT *
-  				FROM {ckan_resource}
-  				WHERE nid = %d ";
+          FROM {ckan_resource}
+          WHERE nid = %d ";
   $result = db_query($sql, $node->nid);
   while ($row = db_fetch_array($result)) {
     $additions['ckan']['resource'][] = $row;
@@ -497,7 +534,7 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
     "license_id"       => $node->ckan_license_id,
   );
 
-  try {
+   try {
      $return = $ckan->updatePackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
