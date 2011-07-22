@@ -342,6 +342,7 @@ function ckan_form(&$node, $form_state) {
      '#title' => 'ckan name',
      '#default_value' => $node->ckan['name'],
      '#required' => TRUE,
+     '#weight' => '0',
    );
    $form['ckan_version'] = array(
      '#type' => 'textfield',
@@ -584,9 +585,13 @@ function theme_ckan_package_resource_info($node) {
   $output = '<div class="ckan_package_resource_info"> <ul><h4>Resources</h4>';
 
   if ($node->ckan['resource']) {
-    foreach ($node->ckan['resource'] as $key => $value) {
-      $output .= "<li>";
-      $output .= t('%keyname : %value ', array('%keyname' => check_plain($key)."", '%value' => $value['url'] ));
+    foreach ($node->ckan['resource'] as $resource) {
+      $output .= "<li><p>Resource</p>";
+      foreach ($resource as $key => $value) {
+        $output .= "<li>";
+        $output .= t('%keyname : %value ', array('%keyname' => check_plain($key)."", '%value' => $value ));
+        $output .= "</li>";
+      }
       $output .= "</li>";
     }
   }
