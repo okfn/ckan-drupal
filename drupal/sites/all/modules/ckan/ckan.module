@@ -407,9 +407,10 @@ function ckan_form(&$node, $form_state) {
      '#prefix' => '<div id="ckan-package-resource"><h2>Resources:</h2>',
      '#suffix' => '</div>',
      '#type' => 'fieldset',
+     '#tree' => TRUE,
    );
 
-  // Add resources fieldsets to the form.
+  // Add resources fieldsets to the package form.
   for ($delta = 0; $delta < (count($node->ckan['resource'])+1); $delta++) {
 
     $text = isset($node->ckan['resource']['id']) ? $node->ckan['resource']['id'] : '';
@@ -417,21 +418,22 @@ function ckan_form(&$node, $form_state) {
     $form['ckan_resource']['ckan_resource_'.$delta] = array(
       '#type' => 'fieldset',
       '#title' => 'Resource'.$delta,
+       '#tree' => TRUE,
     );
 
-    $form['ckan_resource']['ckan_resource_'.$delta]['url'] = array(
+    $form['ckan_resource'][$delta]['url'] = array(
       '#type' => 'textfield',
       '#title' => 'Resource'.$delta.' url',
       '#default_value' => $node->ckan['resource'][$delta]['url'],
     );
 
-    $form['ckan_resource']['ckan_resource_'.$delta]['description'] = array(
+    $form['ckan_resource'][$delta]['description'] = array(
       '#type' => 'textfield',
       '#title' => 'Resource'.$delta.' description',
       '#default_value' => $node->ckan['resource'][$delta]['description'],
     );
 
-    $form['ckan_resource']['ckan_resource_'.$delta]['format'] = array(
+    $form['ckan_resource'][$delta]['format'] = array(
       '#type' => 'textfield',
       '#title' => 'Resource'.$delta.' format',
       '#default_value' => $node->ckan['resource'][$delta]['format'],
@@ -535,6 +537,7 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   );
 
    $package['resources'] = _ckan_get_form_resources($node);
+
   try {
      $return = $ckan->updatePackage(json_encode($package));
   } catch (Exception $e) {
@@ -560,6 +563,7 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
     '#value' => theme('ckan_package_resource_info', $node),
     '#weight' => 1,
   );
+
   return $node;
 }
 
