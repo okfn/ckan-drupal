@@ -428,6 +428,7 @@ function ckan_form(&$node, $form_state) {
        '#tree' => TRUE,
     );
 
+    //@todo Bad urls return 409, so try to validate
     $form['ckan']['resource'][$delta]['url'] = array(
       '#type' => 'textfield',
       '#title' => 'Resource'.$delta.' url',
@@ -504,6 +505,7 @@ function ckan_insert($node) {
     "license_id"       => $node->ckan['license_id'],
   );
 
+  $package['resources'] = $node->ckan['resource'];
 
   try {
      $return = $ckan->createPackage(json_encode($package));
