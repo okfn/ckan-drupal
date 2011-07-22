@@ -281,6 +281,130 @@ function ckan_views_data()  {
 	  ),
   );
 
+
+   // Basic table information for ckan_resource.
+
+	//  The group will appear in the UI in the dropdown tha allows you
+  //  to narrow down which fields and filters are available.
+  $data['ckan_resource']['table']['group']  = t('CKAN');
+
+  // Let Views know that our ckan_package table joins to the 'node'
+  // base table. This means it will be available when listing
+  // nodes and automatically make its fields appear.
+  //
+  // @todo Check if we can do a better join than just nid for resources
+  $data['ckan_resource']['table']['join'] = array(
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'nid',
+    )
+  );
+
+  $data['ckan_resource']['id'] = array(
+    'title' => t('Resource id'),
+    'help' => t('The resource id.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_resource']['resource_group_id'] = array(
+    'title' => t('Resource group id'),
+    'help' => t('The resource_group_id.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_resource']['url'] = array(
+    'title' => t('Resource url'),
+    'help' => t('The resource url.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_resource']['format'] = array(
+    'title' => t('Resource format'),
+    'help' => t('The resource format.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_resource']['description'] = array(
+    'title' => t('Resource description'),
+    'help' => t('The resource description.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_resource']['hash'] = array(
+    'title' => t('Resource hash'),
+    'help' => t('The resource hash.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
+  $data['ckan_resource']['position'] = array(
+    'title' => t('Resource position'),
+    'help' => t('The resource position.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+     ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+	  ),
+  );
+
   return $data;
 }
 
