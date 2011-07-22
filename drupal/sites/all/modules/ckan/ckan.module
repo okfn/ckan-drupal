@@ -450,7 +450,7 @@ function ckan_form(&$node, $form_state) {
     // Add a hidden Resource id to determine new resources.
     $form['ckan']['resource'][$delta]['id'] = array(
       '#type' => 'hidden',
-      '#_value' => $node->ckan['resource'][$delta]['id'],
+      '#value' => $node->ckan['resource'][$delta]['id'],
     );
 
 
@@ -511,7 +511,7 @@ function ckan_insert($node) {
     "license_id"       => $node->ckan['license_id'],
   );
 
-  $package['resources'] = $node->ckan['resource'];
+  $package['resources'] = _ckan_package_get_form_resources($node);
 
   try {
      $return = $ckan->createPackage(json_encode($package));
@@ -552,7 +552,7 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
     "license_id"       => $node->ckan['license_id'],
   );
 
-   $package['resources'] = $node->ckan['resource'];
+  $package['resources'] = _ckan_package_get_form_resources($node);
 
   try {
      $return = $ckan->updatePackage(json_encode($package));
@@ -657,3 +657,16 @@ function theme_ckan_package_resource_info($node) {
   return $output;
 }
 
+/*
+ * Function to return the resource from a package form submission
+ */
+function _ckan_package_get_form_resources(&$node) {
+  $resources =array();
+  $submissions = $node->ckan['resource'];
+  foreach ($submissions as $resource) {
+    if (!empty($resource['url']) ) {
+      $resources[] = $resource;
+    }
+  }
+  return $resources;
+}
