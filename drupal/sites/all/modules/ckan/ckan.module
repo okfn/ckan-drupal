@@ -534,7 +534,8 @@ require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
     "license_id"       => $node->ckan_license_id,
   );
 
-   try {
+   $package['resources'] = _ckan_get_form_resources($node);
+  try {
      $return = $ckan->updatePackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
@@ -637,4 +638,20 @@ function theme_ckan_package_resource_info($node) {
 }
 
 
+/*
+ * Get the resource information from a submitted form node
+ */
+function _ckan_get_form_resources($node){
+  // Resource handling
+  $resources = array();
+  $node_array = (array)$node;
+  $keys = array_keys($node_array);
+  foreach ($keys as $key) {
+    if (strpos($key, "ckan_resource_") === 0) {
+      //@todo don't include key if it's empty
+      $resources[$key] = $node_array[$key];
+    }
+  }
+  return $resources;
+}
 
