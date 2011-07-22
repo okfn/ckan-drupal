@@ -471,7 +471,8 @@ function ckan_load($node) {
   // Load the resources too.
   $sql = "SELECT *
           FROM {ckan_resource}
-          WHERE nid = %d ";
+          WHERE nid = %d
+          ORDER BY position ";
   $result = db_query($sql, $node->nid);
   while ($row = db_fetch_array($result)) {
     $additions['ckan']['resource'][] = $row;
