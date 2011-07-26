@@ -145,3 +145,19 @@ class TestAction(WsgiAppCase):
         assert error ==  {u'__type': u'Validtion Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}
 
 
+    def test_04_purge(self):
+
+        id = model.Package.get('moo2').id
+
+        postparams = '%s=1' % json.dumps(dict(id=id))
+        res = self.app.post('/api/action/package_purge', params=postparams,
+                            extra_environ={'Authorization': 'tester'}, status=403)
+        error = json.loads(res.body)['error']
+        assert error == {u'message': u'Access denied', u'__type': u'Authorization Error'} 
+
+        apikey = model.User.get('testsysadmin').apikey
+
+        postparams = '%s=1' % json.dumps(dict(id=id))
+        res = self.app.post('/api/action/package_purge', params=postparams,
+                            extra_environ={'Authorization': str(apikey)}, status=200)
+

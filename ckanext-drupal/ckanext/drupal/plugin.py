@@ -13,6 +13,8 @@ import ckan.model as model
 from ckan.logic.action import create, update, get
 from ckan.controllers.api import ApiController
 from ckan.logic import NotFound, NotAuthorized, ValidationError
+from ckan import authz
+from ckan.lib.navl.dictization_functions import DataError
 
 
 class Drupal(SingletonPlugin):
@@ -94,9 +96,8 @@ class Drupal(SingletonPlugin):
             if hasattr(obj, 'current') and obj.current <> '1':
                 continue
             if isinstance(obj, (model.Package, model.PackageRevision)):
-                delete = self.add_delete(obj, self.package_table)
+                delete = self.add_delete(obj, self.package_table, conn)
                 package_row = self.get_package_row(conn, obj.id)
-                delete['nid'] = delete['nid']
                 package_rows[delete['id']] = delete
                 deletes.append(delete)
             if isinstance(obj, (model.PackageExtra, model.PackageExtraRevision)):
@@ -134,6 +135,7 @@ class Drupal(SingletonPlugin):
 
         for row in deletes:
            table = row.pop('__table') 
+           id = row.pop('id')
            conn.execute(table.delete().where(table.c.id==id))
 
 
@@ -276,9 +278,20 @@ class Drupal(SingletonPlugin):
         package_update['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
         return package_update
 
+    def package_purge(self, context, data_dict):
+        if not authz.Authorizer().is_sysadmin(unicode(context['user'])):
+            raise NotAuthorized
+        id = data_dict.get('id')
+        if not id:
+            raise DataError
+        package = context['model'].Package.get(id)
+        package.purge()
+        package = context['model'].Session.commit()
+
     def get_actions(self):
         return {'drupal_package_create': self.drupal_package_create,
                 'drupal_package_update': self.drupal_package_update,
+                'package_purge': self.package_purge,
                 'package_create': self.package_create,
                 'package_update': self.package_update}
 
