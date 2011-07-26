@@ -381,15 +381,20 @@ function ckan_form(&$node, $form_state) {
      '#title' => 'ckan maintainer email',
      '#default_value' => $node->ckan['maintainer_email'],
    );
+
+   $license_options = array();
+   $sql = "SELECT license_id, license_name
+   				 FROM {ckan_license} ";
+   $resource = db_query($sql);
+   while ($row = db_fetch_array($resource)) {
+     $license_options[$row['license_id']]  = $row['license_name'];
+   }
+
    $form['ckan']['license_id'] = array(
      '#type' => 'select',
      '#title' => 'ckan license_id',
      '#default_value' => $node->ckan['license_id'],
-     '#options' => array(
-       '' => '',
-       'licensevalue1' => 'license1',
-       'licensevalue2' => 'license2',
-     ),
+     '#options' => $license_options,
    );
    $form['ckan']['update_date'] = array(
      '#type' => 'textfield',
