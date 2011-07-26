@@ -464,9 +464,38 @@ function ckan_form(&$node, $form_state) {
       '#value' => $node->ckan['resource'][$delta]['id'],
     );
 
+    // Add our own validator.
+    $form['#validate']= array('ckan_form_validate');
+
 
   }
   return $form;
+}
+
+
+/*
+ * Validate against the CKAN API
+ */
+function ckan_form_validate($form, &$form_state) {
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
+
+  $package = _ckan_package_form_to_api($form_state['values']);
+
+  // Is this an update?
+  $op = $form_state['values']['ckan']['id'] ? "validateUpdatePackage" : "validateCreatePackage" ;
+
+  try {
+    // Call the correct method, depending on update or create package
+    $return = call_user_func_array(array($ckan, $op), array(json_encode($package)));
+  } catch (Exception $e) {
+    form_set_error('', $e->getMessage());
+    // Delete node if something has gone wrong
+    if (is_numeric($node->nid)) {
+      node_delete($node->nid);
+    }
+  }
+
 }
 
 
@@ -665,7 +694,7 @@ function _ckan_package_form_to_api($values) {
   $package['url']              = $values['ckan']['url'];
   $package['author']           = $values['ckan']['author'];
   $package['author_email']     = $values['ckan']['author_email'];
-  $package['maintainer'] 			 = $values['ckan']['maintainer'];
+  $package['maintainer']       = $values['ckan']['maintainer'];
   $package['maintainer_email'] = $values['ckan']['maintainer_email'];
   $package['notes']            = $values['ckan']['notes'];
   $package['license_id']       = $values['ckan']['license_id'];
