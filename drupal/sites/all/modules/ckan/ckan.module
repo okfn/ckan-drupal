@@ -507,7 +507,7 @@ function ckan_load($node) {
 function ckan_insert($node) {
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
-  $package = _ckan_package_form_to_api($node);
+  $package = _ckan_package_form_to_api((array)$node);
 
   try {
     $return = $ckan->createPackage(json_encode($package));
@@ -531,7 +531,7 @@ function ckan_insert($node) {
 function ckan_update($node) {
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
-  $package = _ckan_package_form_to_api($node);
+  $package = _ckan_package_form_to_api((array)$node);
 
   try {
     $return = $ckan->updatePackage(json_encode($package));
@@ -643,46 +643,41 @@ function theme_ckan_package_resource_info($node) {
 /*
  * Function to return the ckan API array
  *
- * @param $values struct
+ * @param $values array
  *  Node , normally from a form.
- *
-
- *
  *
  * @return array
  *  ckan API array ready for JSON encoding
  */
-function _ckan_package_form_to_api(&$node) {
-
+function _ckan_package_form_to_api($values) {
   $package = array();
 
   // Is this an update?
-  if ($node->ckan['id']) {
-    $package['id'] = $node->ckan['id'];
+  if ($values['ckan']['id']) {
+    $package['id'] = $values['ckan']['id'];
   }
 
   // Add the optional values in.
-  $package['nid']              = $node->nid;
-  $package['title']            = $node->title;
-  $package['name']             = $node->ckan['name'];
-  $package['version']          = $node->ckan['version'];
-  $package['url']              = $node->ckan['url'];
-  $package['author']           = $node->ckan['author'];
-  $package['author_email']     = $node->ckan['author_email'];
-  $package['maintainer'] 			 = $node->ckan['maintainer'];
-  $package['maintainer_email'] = $node->ckan['maintainer_email'];
-  $package['notes']            = $node->ckan['notes'];
-  $package['license_id']       = $node->ckan['license_id'];
-
-
+  $package['nid']              = $values['nid'];
+  $package['title']            = $values['title'];
+  $package['name']             = $values['ckan']['name'];
+  $package['version']          = $values['ckan']['version'];
+  $package['url']              = $values['ckan']['url'];
+  $package['author']           = $values['ckan']['author'];
+  $package['author_email']     = $values['ckan']['author_email'];
+  $package['maintainer'] 			 = $values['ckan']['maintainer'];
+  $package['maintainer_email'] = $values['ckan']['maintainer_email'];
+  $package['notes']            = $values['ckan']['notes'];
+  $package['license_id']       = $values['ckan']['license_id'];
 
   $resources =array();
-  $submissions = $node->ckan['resource'];
+  $submissions = $values['ckan']['resource'];
   foreach ($submissions as $resource) {
     if (!empty($resource['url']) ) {
       $resources[] = $resource;
     }
   }
+
   $package['resources'] = $resources;
 
   return $package;
