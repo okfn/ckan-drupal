@@ -322,6 +322,11 @@ function ckan_form(&$node, $form_state) {
     '#weight' => -5
   );
 
+   $form['ckan']['title'] = array(
+     '#type' => 'hidden',
+     '#value' => $node->ckan['title'],
+   );
+
   $form['body'] = node_body_field($node, $type->body_label, $type->min_word_count);
   //Always use ckan notes as the default body instead of what is in drupal's tables.
   $form['body']['body']['#default_value'] = $node->ckan['notes'];
