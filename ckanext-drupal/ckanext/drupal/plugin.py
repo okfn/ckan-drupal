@@ -10,7 +10,7 @@ import urlparse
 from ckan.plugins import IConfigurer, ISession, IActions
 from ckan.plugins import implements, SingletonPlugin
 import ckan.model as model
-from ckan.logic.action import create, update
+from ckan.logic.action import create, update, get
 from ckan.controllers.api import ApiController
 from ckan.logic import NotFound, NotAuthorized, ValidationError
 
@@ -282,6 +282,34 @@ class Drupal(SingletonPlugin):
                 'package_create': self.package_create,
                 'package_update': self.package_update}
 
+    def populate_licences(self):
+        licences = get.licence_list({'model':model}, {})
+        conn = self.engine.connect()
+        trans = conn.begin()
+        try:
+            conn.execute(self.license_table.delete())
+            inserts = []
+            for licence in licences:
+                inserts.append(
+                    {'license_id': licence['id'],
+                     'license_name': licence['title'],
+                     'is_osi_compliant': licence.get(
+                         'is_osi_compliant',
+                          False
+                     ),
+                     'is_okd_compliant': licence.get(
+                          'is_okd_compliant',
+                          False)
+                     }
+                )
+            conn.execute(self.license_table.insert(), inserts)
+            trans.commit()
+        except:
+            trans.rollback()
+            raise
+        finally:
+            conn.close()
+
     def update_config(self, config):
         config['ckan.site_title'] = 'CKAN-Drupal'
 
@@ -300,8 +328,6 @@ class Drupal(SingletonPlugin):
             Column('name', types.Unicode(PACKAGE_NAME_MAX_LENGTH),
                    nullable=False, unique=True),
             Column('title', types.UnicodeText),
-            Column('version', types.Unicode(PACKAGE_VERSION_MAX_LENGTH)),
-            Column('url', types.UnicodeText),
             Column('author', types.UnicodeText),
             Column('author_email', types.UnicodeText),
             Column('maintainer', types.UnicodeText),
@@ -338,5 +364,14 @@ class Drupal(SingletonPlugin):
             Column('value', types.UnicodeText),
         )
 
+        self.license_table = Table('ckan_license', self.metadata,
+            Column('license_id', types.UnicodeText),
+            Column('license_name', types.UnicodeText),
+            Column('is_okd_compliant', types.Boolean),
+            Column('is_osi_compliant', types.Boolean),
+        )
+
         self.metadata.create_all(self.engine)
+
+        self.populate_licences()
 
