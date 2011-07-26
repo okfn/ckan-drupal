@@ -34,15 +34,19 @@ This is not the drupal module but an extension for CKAN.
 
 3. Start CKAN
 =============
-Start the CKAN webserver on localhost. If you need to change this, alter development.ini .
+#Create sysadmin user in ckan with API keys. 
+paster user add ckantest 123456
+paster sysadmin add ckantest
 
+#Start the CKAN webserver on localhost. If you need to change this, alter development.ini .
 paster serve development.ini
 
 
 4. Install drupal module CKAN
 =============================
-Install in the normal drupal way.
-We require services-6.x-3.0-rc1
+Install in the normal drupal way. We require services-6.x-3.0-rc1.
+Navigate to /admin/settings/ckan and enter the CKAN url and API key. 
+
 
 
 
