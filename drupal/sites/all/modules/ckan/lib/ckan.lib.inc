@@ -153,11 +153,12 @@ class Ckan {
       throw new CkanException("No Result");
     }
 
+    $data = json_decode($result, TRUE);
     if (!in_array($info['http_code'], array(200,201))) {
-      throw new CkanException($this->_http_exception_message($info['http_code']), $info['http_code'], $result);
+      throw new CkanException($this->_http_exception_message($info['http_code']), $info['http_code'], $data);
     }
 
-    return json_decode($result);
+    return $data;
   }
 
   public function createPackage($json){
@@ -200,7 +201,7 @@ class Ckan {
  * Custom exception class
  *
  * @param data array
- * Add any transfered data to the exception
+ * Add any transfered data to the exception.
  */
 class CkanException extends Exception
 {
@@ -211,7 +212,7 @@ class CkanException extends Exception
         $this->_data = $data;
         parent::__construct($message, $code);
     }
-    public function getField()
+    public function getdata()
     {
         return $this->_data;
     }
