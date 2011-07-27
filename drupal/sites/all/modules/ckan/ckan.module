@@ -489,10 +489,14 @@ function ckan_form_validate($form, &$form_state) {
     // Call the correct method, depending on update or create package
     $return = call_user_func_array(array($ckan, $op), array(json_encode($package)));
   } catch (Exception $e) {
+    // Set a general form erros
     form_set_error('', $e->getMessage());
-    // Delete node if something has gone wrong
-    if (is_numeric($node->nid)) {
-      node_delete($node->nid);
+
+    // Set any specific form errors
+    $errors = $e->getData();
+
+    if ($errors['error']['name'][0]) {
+      form_set_error('ckan][name', $errors['error']['name'][0]);
     }
   }
 
