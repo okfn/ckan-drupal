@@ -226,7 +226,7 @@ class Drupal(SingletonPlugin):
             return
         session = context['model'].Session
         url = urlparse.urljoin(self.base_url, 'services/package.json')
-        data_dict['body'] = data_dict['notes']
+        data_dict['body'] = data_dict.get('notes', '')
         data = json.dumps({'data': data_dict})
         req = urllib2.Request(url, data, {'Content-type': 'application/json'})
         ##XXX think about error conditions a bit more
@@ -237,7 +237,20 @@ class Drupal(SingletonPlugin):
             f.close()
         nid = drupal_info['nid']
         context['nid'] = nid
-        package_create = create.package_create(context, data_dict)
+        try:
+            package_create = create.package_create(context, data_dict)
+        except:
+            from nose.tools import set_trace; set_trace()
+            url = urlparse.urljoin(self.base_url, 'services/package/%s.json' % (nid))
+            req = urllib2.Request(url)
+            req.get_method = lambda: 'DELETE'
+            f = urllib2.urlopen(req, None, 3)
+            try:
+                drupal_info = f.read()
+            finally:
+                f.close()
+            raise
+
         package_create['nid'] = context['nid']
         package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
         return package_create
