@@ -697,6 +697,9 @@ function _ckan_package_form_to_api($values) {
     $package['id'] = $values['ckan']['id'];
   }
 
+  // Map to CKAN States. Unpublished = deleted.
+  $package['state'] = $values['status'] ? 'active' : 'deleted';
+
   // Add the optional values in.
   $package['nid']              = $values['nid'];
   $package['title']            = $values['title'];
