@@ -240,7 +240,6 @@ class Drupal(SingletonPlugin):
         try:
             package_create = create.package_create(context, data_dict)
         except:
-            from nose.tools import set_trace; set_trace()
             url = urlparse.urljoin(self.base_url, 'services/package/%s.json' % (nid))
             req = urllib2.Request(url)
             req.get_method = lambda: 'DELETE'
@@ -294,11 +293,32 @@ class Drupal(SingletonPlugin):
     def package_purge(self, context, data_dict):
         if not authz.Authorizer().is_sysadmin(unicode(context['user'])):
             raise NotAuthorized
-        id = data_dict.get('id')
-        if not id:
-            raise DataError
-        package = context['model'].Package.get(id)
+        if 'id' not in data_dict:
+            raise NotFound
+        package = context['model'].Package.get(data_dict['id'])
         package.purge()
+        package = context['model'].Session.flush()
+        result = self.engine.execute(
+                select(
+                    [self.package_table.c.nid],
+                    or_(self.package_table.c.id == data_dict['id'],
+                        self.package_table.c.name == data_dict['id'])
+                )
+        ).fetchone()
+        if not result:
+            raise NotFound
+
+        nid = result['nid']
+        url = urlparse.urljoin(self.base_url, 'services/package/%s.json' % (nid))
+        req = urllib2.Request(url)
+        req.get_method = lambda: 'DELETE'
+        f = urllib2.urlopen(req, None, 3)
+        try:
+            drupal_info = f.read()
+        finally:
+            f.close()
+
+        
         package = context['model'].Session.commit()
 
     def get_actions(self):

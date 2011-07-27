@@ -155,19 +155,9 @@ class TestAction(WsgiAppCase):
 
     def test_04_purge(self):
 
-        id = model.Package.get('moo2').id
-
-        postparams = '%s=1' % json.dumps(dict(id=id))
-        res = self.app.post('/api/action/package_purge', params=postparams,
-                            extra_environ={'Authorization': 'tester'}, status=403)
-        error = json.loads(res.body)['error']
-        assert error == {u'message': u'Access denied', u'__type': u'Authorization Error'} 
-
-        apikey = model.User.get('testsysadmin').apikey
-
-        postparams = '%s=1' % json.dumps(dict(id=id))
-        res = self.app.post('/api/action/package_purge', params=postparams,
-                            extra_environ={'Authorization': str(apikey)}, status=200)
+        package = model.Package.get('moo2')
+        package.purge()
+        model.Session.commit()
 
 
     def test_05_create_using_drupal(self):
@@ -217,7 +207,23 @@ class TestAction(WsgiAppCase):
         assert package['title'] == node_revision['title']
         assert package['notes'] == node_revision['body']
 
-    def test_06_create_mistake_drupal(self):
+    def test_06_purge(self):
+
+        id = model.Package.get('moo1').id
+
+        postparams = '%s=1' % json.dumps(dict(id=id))
+        res = self.app.post('/api/action/package_purge', params=postparams,
+                            extra_environ={'Authorization': 'tester'}, status=403)
+        error = json.loads(res.body)['error']
+        assert error == {u'message': u'Access denied', u'__type': u'Authorization Error'} 
+
+        apikey = model.User.get('testsysadmin').apikey
+
+        postparams = '%s=1' % json.dumps(dict(id=id))
+        res = self.app.post('/api/action/package_purge', params=postparams,
+                            extra_environ={'Authorization': str(apikey)}, status=200)
+
+    def test_07_create_mistake_drupal(self):
 
         package = {
             'name': u'moo fdfaaasf',
@@ -236,7 +242,7 @@ class TestAction(WsgiAppCase):
 
         node_revision_count = conn.execute('select count(*) from node_revisions').fetchone()
 
-        assert node_count[0] == 1
-        assert node_revision_count[0] == 1
+        assert node_count[0] == 0, node_count[0]
+        assert node_revision_count[0] == 0, node_revision_count[0]
 
 
