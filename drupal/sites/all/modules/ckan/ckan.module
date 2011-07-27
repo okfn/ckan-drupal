@@ -603,8 +603,15 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
  * When a node is deleted, we need to remove all related records from our table.
  */
 function ckan_delete($node) {
-  // Notice that we're matching all revision, by using the node's nid.
-  db_query('DELETE FROM {ckan_package} WHERE nid = %d', $node->nid);
+
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
+  $package = array('id' => $node->ckan['id']);
+  try {
+    $return = $ckan->deletePackage(json_encode($package));
+  } catch (Exception $e) {
+    form_set_error('', $e->getMessage());
+  }
 }
 
 
