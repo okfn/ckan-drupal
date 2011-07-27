@@ -154,7 +154,7 @@ class Ckan {
     }
 
     if (!in_array($info['http_code'], array(200,201))) {
-      throw new CkanException($this->_http_exception_message($info['http_code']).' '.$result, $info['http_code']) ;
+      throw new CkanException($this->_http_exception_message($info['http_code']), $info['http_code'], $result);
     }
 
     return json_decode($result);
@@ -196,5 +196,23 @@ class Ckan {
 
 }
 
-class CkanException extends Exception{
+/*
+ * Custom exception class
+ *
+ * @param data array
+ * Add any transfered data to the exception
+ */
+class CkanException extends Exception
+{
+    protected $_data ;
+
+    public function __construct($message="", $code=0 , $data = NULL)
+    {
+        $this->_data = $data;
+        parent::__construct($message, $code);
+    }
+    public function getField()
+    {
+        return $this->_data;
+    }
 }
