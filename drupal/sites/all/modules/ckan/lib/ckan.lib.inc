@@ -101,6 +101,9 @@ class Ckan {
     'License List'  =>                    '/rest/licenses',#
     'drupal package create' =>            '/api/action/drupal_package_create',
     'drupal package update' =>            '/api/action/drupal_package_update',
+    'drupal package delete' =>            '/api/action/package_purge',
+    'package create validate' =>          '/api/action/package_create_validate',
+    'package update validate' =>          '/api/action/package_update_validate',
     'api version' =>                      '/api',
   );
 
@@ -147,13 +150,16 @@ class Ckan {
     // Provide useful output when debugmode is turned on.
     if ($this->debugmode) { var_dump($info, $result, $data); }
 
-    if (!in_array($info['http_code'], array(200,201))) {
-      throw new CkanException($this->_http_exception_message($info['http_code']), $info['http_code']);
-    }
     if (!$result){
       throw new CkanException("No Result");
     }
-    return json_decode($result);
+
+    $data = json_decode($result, TRUE);
+    if (!in_array($info['http_code'], array(200,201))) {
+      throw new CkanException($this->_http_exception_message($info['http_code']), $info['http_code'], $data);
+    }
+
+    return $data;
   }
 
   public function createPackage($json){
@@ -166,6 +172,24 @@ class Ckan {
     $url=$this->baseurl.sprintf($this->resources['drupal package update']);
     $package = $this->transfer($url, 'POST', $json);
     return $package;
+  }
+
+  public function deletePackage($json){
+    $url=$this->baseurl.sprintf($this->resources['drupal package delete']);
+    $package = $this->transfer($url, 'POST', $json);
+    return $package;
+  }
+
+  public function validateCreatePackage($json){
+    $url=$this->baseurl.$this->resources['package create validate'];
+    $package = $this->transfer($url, 'POST', $json);
+  return $package;
+  }
+
+  public function validateUpdatePackage($json){
+    $url=$this->baseurl.$this->resources['package update validate'];
+    $package = $this->transfer($url, 'POST', $json);
+  return $package;
   }
 
   public function getApiVersion(){
@@ -181,4 +205,23 @@ class Ckan {
 
 }
 
-class CkanException extends Exception{}
+/*
+ * Custom exception class
+ *
+ * @param data array
+ * Add any transfered data to the exception.
+ */
+class CkanException extends Exception
+{
+    protected $_data ;
+
+    public function __construct($message="", $code=0 , $data = NULL)
+    {
+        $this->_data = $data;
+        parent::__construct($message, $code);
+    }
+    public function getdata()
+    {
+        return $this->_data;
+    }
+}

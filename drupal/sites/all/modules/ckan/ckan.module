@@ -322,6 +322,11 @@ function ckan_form(&$node, $form_state) {
     '#weight' => -5
   );
 
+   $form['ckan']['title'] = array(
+     '#type' => 'hidden',
+     '#value' => $node->ckan['title'],
+   );
+
   $form['body'] = node_body_field($node, $type->body_label, $type->min_word_count);
   //Always use ckan notes as the default body instead of what is in drupal's tables.
   $form['body']['body']['#default_value'] = $node->ckan['notes'];
@@ -381,15 +386,20 @@ function ckan_form(&$node, $form_state) {
      '#title' => 'ckan maintainer email',
      '#default_value' => $node->ckan['maintainer_email'],
    );
+
+   $license_options = array();
+   $sql = "SELECT license_id, license_name
+           FROM {ckan_license} ";
+   $resource = db_query($sql);
+   while ($row = db_fetch_array($resource)) {
+     $license_options[$row['license_id']]  = $row['license_name'];
+   }
+
    $form['ckan']['license_id'] = array(
      '#type' => 'select',
      '#title' => 'ckan license_id',
      '#default_value' => $node->ckan['license_id'],
-     '#options' => array(
-       '' => '',
-       'licensevalue1' => 'license1',
-       'licensevalue2' => 'license2',
-     ),
+     '#options' => $license_options,
    );
    $form['ckan']['update_date'] = array(
      '#type' => 'textfield',
@@ -454,9 +464,42 @@ function ckan_form(&$node, $form_state) {
       '#value' => $node->ckan['resource'][$delta]['id'],
     );
 
+    // Add our own validator.
+    $form['#validate']= array('ckan_form_validate');
+
 
   }
   return $form;
+}
+
+
+/*
+ * Validate against the CKAN API
+ */
+function ckan_form_validate($form, &$form_state) {
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
+
+  $package = _ckan_package_form_to_api($form_state['values']);
+
+  // Is this an update?
+  $op = $form_state['values']['ckan']['id'] ? "validateUpdatePackage" : "validateCreatePackage" ;
+
+  try {
+    // Call the correct method, depending on update or create package
+    $return = call_user_func_array(array($ckan, $op), array(json_encode($package)));
+  } catch (Exception $e) {
+    // Set a general form erros
+    form_set_error('', $e->getMessage());
+
+    // Set any specific form errors
+    $errors = $e->getData();
+
+    if ($errors['error']['name'][0]) {
+      form_set_error('ckan][name', $errors['error']['name'][0]);
+    }
+  }
+
 }
 
 
@@ -497,34 +540,18 @@ function ckan_load($node) {
 function ckan_insert($node) {
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
-
-  $package= array(
-    "nid"              => $node->nid,            //required
-    "title"            => $node->title,
-    "name"             => $node->ckan['name'],
-    "version"          => $node->ckan['version'],
-    "url"              => $node->ckan['url'],
-    "author"           => $node->ckan['author'],
-    "author_email"     => $node->ckan['author_email'],
-    "maintainer"       => $node->ckan['maintainer'],
-    "maintainer_email" => $node->ckan['maintainer_email'],
-    "notes"            => $node->body,
-    "license_id"       => $node->ckan['license_id'],
-  );
-
-  $package['resources'] = _ckan_package_get_form_resources($node);
+  $package = _ckan_package_form_to_api((array)$node);
 
   try {
-     $return = $ckan->createPackage(json_encode($package));
+    $return = $ckan->createPackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
-
     // Delete node if something has gone wrong
     if (is_numeric($node->nid)) {
       node_delete($node->nid);
     }
-
   }
+
 }
 
 
@@ -535,32 +562,16 @@ function ckan_insert($node) {
  * database updates.
  */
 function ckan_update($node) {
-require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
-
-  $package= array(
-    "id"               => $node->ckan['id'],                 //required
-    "nid"              => $node->nid,
-    "title"            => $node->title,
-    "name"             => $node->ckan['name'],
-    "version"          => $node->ckan['version'],
-    "url"              => $node->ckan['url'],
-    "author"           => $node->ckan['author'],
-    "author_email"     => $node->ckan['author_email'],
-    "maintainer"       => $node->ckan['maintainer'],
-    "maintainer_email" => $node->ckan['maintainer_email'],
-    "notes"            => $node->body,
-    "license_id"       => $node->ckan['license_id'],
-  );
-
-  $package['resources'] = _ckan_package_get_form_resources($node);
+  $package = _ckan_package_form_to_api((array)$node);
 
   try {
-     $return = $ckan->updatePackage(json_encode($package));
+    $return = $ckan->updatePackage(json_encode($package));
   } catch (Exception $e) {
     form_set_error('', $e->getMessage());
-
   }
+
 }
 
 
@@ -592,8 +603,15 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
  * When a node is deleted, we need to remove all related records from our table.
  */
 function ckan_delete($node) {
-  // Notice that we're matching all revision, by using the node's nid.
-  db_query('DELETE FROM {ckan_package} WHERE nid = %d', $node->nid);
+
+  require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
+  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
+  $package = array('id' => $node->ckan['id']);
+  try {
+    $return = $ckan->deletePackage(json_encode($package));
+  } catch (Exception $e) {
+    form_set_error('', $e->getMessage());
+  }
 }
 
 
@@ -663,15 +681,47 @@ function theme_ckan_package_resource_info($node) {
 }
 
 /*
- * Function to return the resource from a package form submission
+ * Function to return the ckan API array
+ *
+ * @param $values array
+ *  Node , normally from a form.
+ *
+ * @return array
+ *  ckan API array ready for JSON encoding
  */
-function _ckan_package_get_form_resources(&$node) {
+function _ckan_package_form_to_api($values) {
+  $package = array();
+
+  // Is this an update?
+  if ($values['ckan']['id']) {
+    $package['id'] = $values['ckan']['id'];
+  }
+
+  // Map to CKAN States. Unpublished = deleted.
+  $package['state'] = $values['status'] ? 'active' : 'deleted';
+
+  // Add the optional values in.
+  $package['nid']              = $values['nid'];
+  $package['title']            = $values['title'];
+  $package['name']             = $values['ckan']['name'];
+  $package['version']          = $values['ckan']['version'];
+  $package['url']              = $values['ckan']['url'];
+  $package['author']           = $values['ckan']['author'];
+  $package['author_email']     = $values['ckan']['author_email'];
+  $package['maintainer']       = $values['ckan']['maintainer'];
+  $package['maintainer_email'] = $values['ckan']['maintainer_email'];
+  $package['notes']            = $values['ckan']['notes'];
+  $package['license_id']       = $values['ckan']['license_id'];
+
   $resources =array();
-  $submissions = $node->ckan['resource'];
+  $submissions = $values['ckan']['resource'];
   foreach ($submissions as $resource) {
     if (!empty($resource['url']) ) {
       $resources[] = $resource;
     }
   }
-  return $resources;
+
+  $package['resources'] = $resources;
+
+  return $package;
 }
