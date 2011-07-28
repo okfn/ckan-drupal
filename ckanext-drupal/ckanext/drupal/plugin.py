@@ -326,7 +326,8 @@ class Drupal(SingletonPlugin):
                 'drupal_package_update': self.drupal_package_update,
                 'package_purge': self.package_purge,
                 'package_create': self.package_create,
-                'package_update': self.package_update}
+                'package_update': self.package_update,
+                'migrate_data': self.migrate_data}
 
     def populate_licences(self):
         licences = get.licence_list({'model':model}, {})
@@ -362,7 +363,7 @@ class Drupal(SingletonPlugin):
         url = config['drupal.db_url'] 
         self.base_url = config['drupal.base_url'] 
 
-        self.engine = create_engine(url, echo=True)
+        self.engine = create_engine(url)
         self.metadata = MetaData(self.engine)
 
         PACKAGE_NAME_MAX_LENGTH = 100
@@ -420,4 +421,110 @@ class Drupal(SingletonPlugin):
         self.metadata.create_all(self.engine)
 
         self.populate_licences()
+
+    def migrate_data(self, context, data_dict):
+        if not authz.Authorizer().is_sysadmin(unicode(context['user'])):
+            raise NotAuthorized
+        model.Session.remove()
+        model.Session().connection
+        conn_ckan = model.Session.connection()
+        conn_drupal = self.engine.connect()
+
+        #package
+        packages = conn_ckan.execute(
+            select(
+                [model.package_revision_table],
+                and_(model.package_revision_table.c.current == True,
+                     model.package_revision_table.c.state.in_(['active','deleted']))
+            )
+        ).fetchall()
+        package_inserts = []
+        for package in packages:
+            insert = {}
+            for column in self.package_table.c:
+                if column in package:
+                    insert[column.name] = package[column.name]
+            package_inserts.append(insert)
+        conn_drupal.execute(self.package_table.insert(), package_inserts)
+        print 'packages done'
+        
+        #resources
+        resources = conn_ckan.execute(
+            select(
+                [model.resource_revision_table, model.resource_group_table.c.package_id],
+                and_(model.resource_revision_table.c.current == True,
+                 model.resource_revision_table.c.state.in_(['active','deleted']),
+                 model.resource_group_table.c.id == model.resource_revision_table.c.resource_group_id,
+                )
+            )
+        ).fetchall()
+
+        resource_inserts = []
+        for resource in resources:
+            insert = {}
+            for column in self.resource_table.c:
+                if column in resource:
+                    insert[column.name] = resource[column.name]
+            insert['extras'] = json.dumps(insert['extras'])
+            resource_inserts.append(insert)
+        conn_drupal.execute(self.resource_table.insert(), resource_inserts)
+        print 'resources done'
+        
+        #extras
+        extras = conn_ckan.execute(
+            select(
+                [model.extra_revision_table],
+                and_(model.extra_revision_table.c.current == True,
+                     model.extra_revision_table.c.state.in_(['active','deleted']))
+            )
+        ).fetchall()
+        package_extra_inserts = []
+        for extra in extras:
+            insert = {}
+            for column in self.package_extra_table.c:
+                if column in extra:
+                    insert[column.name] = extra[column.name]
+            insert['value'] = json.dumps(insert['value'])
+            package_extra_inserts.append(insert)
+        conn_drupal.execute(self.package_extra_table.insert(), package_extra_inserts)
+        print 'extras done'
+
+        ## get nodes
+
+        packages = conn_drupal.execute(
+            select(
+                [self.package_table],
+            )
+        ).fetchall()
+
+        for num, package in enumerate(packages):
+            print num
+            data_dict = {}
+            for column in self.package_table.c:
+                data_dict[column.name] = package[column.name]
+            url = urlparse.urljoin(self.base_url, 'services/package.json')
+            data_dict['body'] = data_dict.get('notes', '')
+            if not data_dict['title']:
+                data_dict['title'] = data_dict['name']
+            data = json.dumps({'data': data_dict})
+            req = urllib2.Request(url, data, {'Content-type': 'application/json'})
+            f = urllib2.urlopen(req, None, 3)
+            try:
+                drupal_info = json.loads(f.read())
+            finally:
+                f.close()
+            nid = drupal_info['nid']
+            update = {'nid': nid}
+
+            conn_drupal.execute(
+                self.package_table.update().where(
+                    self.package_table.c.id==data_dict['id']
+                ).values(
+                    nid=nid
+                )
+            )
+            
+        conn_drupal.execute('update ckan_resource set nid = (select nid from ckan_package where ckan_resource.package_id = ckan_package.id);')
+        conn_drupal.execute('update ckan_package_extra set nid = (select nid from ckan_package where ckan_package_extra.package_id = ckan_package.id);')
+        print 'finished migration'
 

@@ -43,6 +43,19 @@ class TestAction(WsgiAppCase):
         cls.engine.execute('delete from node')
         cls.engine.execute('delete from node_revisions')
 
+    def test_00_migrate_data(self):
+
+        apikey = model.User.get('testsysadmin').apikey
+        postparams = '%s=1' % json.dumps({})
+        res = self.app.post('/api/action/migrate_data', params=postparams,
+                            extra_environ={'Authorization': str(apikey)}, status=200)
+        conn = self.engine.connect()
+        package_count = conn.execute('select count(*) from ckan_package').fetchone()
+        res_count = conn.execute('select count(*) from ckan_resource').fetchone()
+        extra_count = conn.execute('select count(*) from ckan_package_extra').fetchone()
+        assert package_count[0] == 2
+        assert res_count[0] == 2
+        assert extra_count[0] == 2
 
     def test_01_create_update_package(self):
 
@@ -200,10 +213,10 @@ class TestAction(WsgiAppCase):
 
         conn = self.engine.connect()
 
-        node = conn.execute('select * from node').fetchone()
+        node = conn.execute('select * from node order by nid desc').fetchone()
         assert node['title'] == package['title']
 
-        node_revision = conn.execute('select * from node_revisions').fetchone()
+        node_revision = conn.execute('select * from node_revisions order by vid desc').fetchone()
         assert package['title'] == node_revision['title']
         assert package['notes'] == node_revision['body']
 
@@ -242,7 +255,7 @@ class TestAction(WsgiAppCase):
 
         node_revision_count = conn.execute('select count(*) from node_revisions').fetchone()
 
-        assert node_count[0] == 0, node_count[0]
-        assert node_revision_count[0] == 0, node_revision_count[0]
+        assert node_count[0] == 2, node_count[0]
+        assert node_revision_count[0] == 2, node_revision_count[0]
 
 
