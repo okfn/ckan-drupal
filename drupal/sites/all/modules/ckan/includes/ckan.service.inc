@@ -133,9 +133,30 @@ function  _ckanrest_update($nid, $data) {
   // Check the node is the correct type.
   if (!$node->type == 'ckan_package') {return services_error('Not a package node.', 406);}
 
-  // Update title, body, tags
+  // Update title, body
   $node->title = $data['title'] ?  $data['title']: $node->title ;
   $node->body = $data['body'] ?  $data['body'] : $node->body ;
+
+  // Add terms
+  //Clear existing terms if key is given
+  if ($data['terms']) {
+    $node->taxonomy = '';
+    foreach ($data['terms'] as $termname) {
+      // Check if term already exists
+      $addterm =taxonomy_get_term_by_name($termname);
+      if (!isset($addterm[0])) {
+        $addterm = array(
+      	  'vid' => '4',
+       	  'name'=> $termname
+        );
+        // Save new term to vocabulary and add to node
+        taxonomy_save_term($addterm);
+        $node->taxonomy[] = $addterm;
+      } else { // Or add existing term to node
+        $node->taxonomy[] = $addterm[0];
+      }
+    }
+  }
 
   node_save($node);
   return $node;
