@@ -523,8 +523,16 @@ function ckan_form_validate($form, &$form_state) {
     // Set any specific form errors
     $errors = $e->getData();
 
+    // Handle name errors
     if ($errors['error']['name'][0]) {
       form_set_error('ckan][name', $errors['error']['name'][0]);
+    }
+
+    // Handle tag errors
+    if (isset($errors['error']['tags'])) {
+      foreach ($errors['error']['tags'] as $error) {
+        form_set_error('taxonomy', $error['name'][0]);
+      }
     }
   }
 
