@@ -127,6 +127,11 @@ function  _ckanrest_delete($nid) {
 function  _ckanrest_update($nid, $data) {
   $node = node_load($nid);
 
+  $ckan_vocabulary_id = variable_get('ckan_vocabulary_id', '');
+  if (!is_numeric($ckan_vocabulary_id)) {
+      return services_error('No CKAN vocabulary ID set in admin/settings/ckan.', 406);
+  }
+
   // Check the node exists.
   if (!$node->nid) {return services_error('Not a node.', 404);}
 
@@ -141,21 +146,7 @@ function  _ckanrest_update($nid, $data) {
   //Clear existing terms if key is given
   if ($data['terms']) {
     $node->taxonomy = '';
-    foreach ($data['terms'] as $termname) {
-      // Check if term already exists
-      $addterm =taxonomy_get_term_by_name($termname);
-      if (!isset($addterm[0])) {
-        $addterm = array(
-      	  'vid' => '4',
-       	  'name'=> $termname
-        );
-        // Save new term to vocabulary and add to node
-        taxonomy_save_term($addterm);
-        $node->taxonomy[] = $addterm;
-      } else { // Or add existing term to node
-        $node->taxonomy[] = $addterm[0];
-      }
-    }
+    $node->taxonomy['tags'][$ckan_vocabulary_id] = implode($data['terms'], ",");
   }
 
   node_save($node);
