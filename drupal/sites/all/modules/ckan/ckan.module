@@ -338,6 +338,10 @@ function ckan_form(&$node, $form_state) {
   // build the node form correctly.
   $type = node_get_types('type', $node);
 
+  if (!is_numeric(variable_get('ckan_vocabulary_id', ''))) {
+    form_set_error('', 'CKAN vocabulary has not been set. You can set it at '.l('CKAN admin page', 'admin/settings/ckan').'.');
+  }
+
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => check_plain($type->title_label),
@@ -738,7 +742,7 @@ function _ckan_package_form_to_api($values) {
   $package['license_id']       = $values['ckan']['license_id'];
 
   //Add Tags
-  $terms = explode(',', $values['taxonomy']['tags']['4']);
+  $terms = explode(',', $values['taxonomy']['tags'][variable_get('ckan_vocabulary_id', '')]);
   foreach ($terms as $term) {
     $package['tags'][] = array('name' => trim($term));
   }
