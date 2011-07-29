@@ -98,7 +98,7 @@ class Ckan {
     'Package’s Revisions Entity'  =>      '/rest/package/%s/revisions',    //PACKAGE-REF
     'Revision Register'  =>               '/rest/revision',
     'Revision Entity'  =>                 '/rest/revision/%s',    //REVISION-ID
-    'License List'  =>                    '/rest/licenses',#
+    'License List'  =>                    '/rest/licenses',
     'drupal package create' =>            '/api/action/drupal_package_create',
     'drupal package update' =>            '/api/action/drupal_package_update',
     'drupal package delete' =>            '/api/action/package_purge',
