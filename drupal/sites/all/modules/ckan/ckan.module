@@ -713,6 +713,13 @@ function _ckan_package_form_to_api($values) {
   $package['notes']            = $values['ckan']['notes'];
   $package['license_id']       = $values['ckan']['license_id'];
 
+  //Add Tags
+  $terms = explode(',', $values['taxonomy']['tags']['4']);
+  foreach ($terms as $term) {
+    $package['tags'][] = array('name' => trim($term));
+  }
+
+  // Add Resources
   $resources =array();
   $submissions = $values['ckan']['resource'];
   foreach ($submissions as $resource) {
@@ -720,7 +727,6 @@ function _ckan_package_form_to_api($values) {
       $resources[] = $resource;
     }
   }
-
   $package['resources'] = $resources;
 
   return $package;
