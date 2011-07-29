@@ -26,8 +26,7 @@ function _ckan_admin_form(&$form_state) {
 
   $form = array();
 
-  //test connection
-
+  //test connection to CKAN
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $url =variable_get('ckan_connection_url', '');
   $apikey = variable_get('ckan_connection_api_key', '');
@@ -39,10 +38,10 @@ function _ckan_admin_form(&$form_state) {
     drupal_set_message("Could not connect to CKAN instance at ".$url." with key ".$apikey, 'error');
   }
 
-  if (!($connection->version >=1)) {
+  if (!($connection['version'] >=1)) {
     $api_message = 'Could not connect';
   } else {
-    $api_message = "version ".$connection->version;
+    $api_message = "version ".$connection['version'];
   }
 
   $form['ckan_api_version'] = array(
@@ -51,27 +50,52 @@ function _ckan_admin_form(&$form_state) {
     '#size' => 20,
     '#value' => $api_message,
     '#disabled' => TRUE,
-    '#description' => t('The CKAN version API'),
+    '#description' => t('The CKAN API version.'),
   );
 
   $form['ckan_connection_url'] = array(
-  '#type' => 'textfield',
-  '#title' => 'Connection url',
-  '#description' => t('e.g. http://127.0.0.1:5000'),
-  '#default_value' => variable_get('ckan_connection_url', ''),
+    '#type' => 'textfield',
+    '#title' => 'Connection url',
+    '#description' => t('e.g. http://127.0.0.1:5000'),
+    '#default_value' => variable_get('ckan_connection_url', ''),
   );
 
   $form['ckan_connection_api_key'] = array(
-  '#type' => 'textfield',
-  '#title' => 'Connection API key',
-  '#description' => t('Your ckan api key '),
-  '#default_value' => variable_get('ckan_connection_api_key', ''),
+    '#type' => 'textfield',
+    '#title' => 'Connection API key',
+    '#description' => t('Your ckan api key.'),
+    '#default_value' => variable_get('ckan_connection_api_key', ''),
+  );
+
+  $vocabularies = taxonomy_get_vocabularies();
+  $options_vocabularies = array();
+  foreach ($vocabularies as $vocabulary) {
+    $options_vocabularies[$vocabulary->vid] = $vocabulary->name;
+  }
+
+  $form['ckan_vocabulary_id'] = array(
+    '#type' => 'select',
+    '#title' => 'CKAN Vocabulary',
+    '#description' => t('The vocabulary to use when tagging packages.'),
+    '#default_value' => variable_get('ckan_vocabulary_id', ''),
+    '#options' => $options_vocabularies,
   );
 
   return system_settings_form($form);
 }
 
+/*
+ * Validate the admin form
+ */
+function _ckan_admin_form_validate($form, &$form_state) {
 
+  $vocabularies = taxonomy_get_vocabularies();
+  $ckan_vocabulary = $vocabularies[$form_state['values']['ckan_vocabulary_id']];
+
+  // Check that CKAN vocabulary has allowed vocabulary settings
+  if (!$ckan_vocabulary->tags) { form_set_error('ckan_vocabulary_id','Can not use vocabulary. Tags are not enabled in selected vocabulary.');}
+
+}
 
  /**
   * Defines function signatures for resources available to services.
