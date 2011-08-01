@@ -40,6 +40,7 @@ class TestAction(WsgiAppCase):
         cls.engine.execute('delete from ckan_package')
         cls.engine.execute('delete from ckan_resource')
         cls.engine.execute('delete from ckan_package_extra')
+        cls.engine.execute('delete from ckan_tag')
         cls.engine.execute('delete from node')
         cls.engine.execute('delete from node_revisions')
 
@@ -50,12 +51,15 @@ class TestAction(WsgiAppCase):
         res = self.app.post('/api/action/migrate_data', params=postparams,
                             extra_environ={'Authorization': str(apikey)}, status=200)
         conn = self.engine.connect()
+
         package_count = conn.execute('select count(*) from ckan_package').fetchone()
         res_count = conn.execute('select count(*) from ckan_resource').fetchone()
         extra_count = conn.execute('select count(*) from ckan_package_extra').fetchone()
+        tag_count = conn.execute('select count(*) from ckan_tag').fetchone()
         assert package_count[0] == 2
         assert res_count[0] == 2
         assert extra_count[0] == 2
+        assert tag_count[0] == 3
 
     def test_01_create_update_package(self):
 
@@ -95,16 +99,33 @@ class TestAction(WsgiAppCase):
                             extra_environ={'Authorization': 'tester'})
         package_created = json.loads(res.body)['result']
 
+        conn = self.engine.connect()
+        package_count = conn.execute('select count(*) from ckan_package').fetchone()
+        res_count = conn.execute('select count(*) from ckan_resource').fetchone()
+        extra_count = conn.execute('select count(*) from ckan_package_extra').fetchone()
+        tag_count = conn.execute('select count(*) from ckan_tag').fetchone()
+        assert package_count[0] == 3
+        assert res_count[0] == 4
+        assert extra_count[0] == 3
+        assert tag_count[0] == 5
 
         package_created['name'] = 'moo2'
+        package_created['tags'] = [{'name': u'russian'}]
+
         postparams = '%s=1' % json.dumps(package_created)
         res = self.app.post('/api/action/drupal_package_update', params=postparams,
                             extra_environ={'Authorization': 'tester'})
+
+        tag_count = conn.execute('select count(*) from ckan_tag').fetchone()
+        assert tag_count[0] == 4
 
         package_updated = json.loads(res.body)['result']
         package_updated.pop('revision_id')
         package_updated.pop('revision_timestamp')
         package_updated.pop('revision_message')
+        package_updated['tags'][0].pop('id')
+        package_updated['tags'][0].pop('revision_timestamp')
+        package_updated['tags'][0].pop('state')
         package_created.pop('revision_id')
         package_created.pop('revision_timestamp')
         package_created.pop('revision_message')

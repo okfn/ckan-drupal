@@ -65,6 +65,9 @@ class Drupal(SingletonPlugin):
                 inserts.append(self.add_insert(obj, self.resource_table))
             if isinstance(obj, (model.PackageExtra, model.PackageExtraRevision)):
                 inserts.append(self.add_insert(obj, self.package_extra_table))
+            if isinstance(obj, (model.PackageTag, model.PackageTagRevision)):
+                inserts.append({'__table': self.tag_table, 'package_id': obj.package_id,
+                                'name': obj.tag.name, 'id': obj.id})
 
         for obj in changed:
             if hasattr(obj, 'state') and 'pending' in obj.state:
@@ -89,6 +92,14 @@ class Drupal(SingletonPlugin):
                     deletes.append(self.add_delete(obj, self.package_extra_table, conn))
                 else:
                     updates.append(self.add_update(obj, self.package_extra_table))
+            if isinstance(obj, (model.PackageTag, model.PackageTagRevision)):
+                if obj.state == 'deleted':
+                    deletes.append({'__table': self.tag_table, 'package_id': obj.package_id,
+                                    'name': obj.tag.name, 'id': obj.id})
+                else:
+                    updates.append({'__table': self.tag_table, 'package_id': obj.package_id,
+                                    'name': obj.tag.name, 'id': obj.id})
+
 
         for obj in deleted:
             if hasattr(obj, 'state') and 'pending' in obj.state:
@@ -104,6 +115,9 @@ class Drupal(SingletonPlugin):
                 deletes.append(self.add_delete(obj, self.package_extra_table, conn))
             if isinstance(obj, (model.Resource, model.ResourceRevision)):
                 deletes.append(self.add_delete(obj, self.resource_table, conn))
+            if isinstance(obj, (model.PackageTag, model.PackageTagRevision)):
+                deletes.append({'__table': self.tag_table, 'package_id': obj.package_id,
+                                'id': obj.id})
 
         for row in inserts + updates + deletes:
             if 'package_id' in row:
@@ -411,6 +425,13 @@ class Drupal(SingletonPlugin):
             Column('value', types.UnicodeText),
         )
 
+        self.tag_table = Table('ckan_tag', self.metadata,
+            Column('nid', types.UnicodeText),
+            Column('id', types.Unicode(100), primary_key=True),
+            Column('package_id', types.UnicodeText),
+            Column('name', types.UnicodeText),
+        )
+
         self.license_table = Table('ckan_license', self.metadata,
             Column('license_id', types.UnicodeText),
             Column('license_name', types.UnicodeText),
@@ -452,7 +473,7 @@ class Drupal(SingletonPlugin):
         resources = conn_ckan.execute(
             select(
                 [model.resource_revision_table, model.resource_group_table.c.package_id],
-                and_(model.resource_revision_table.c.current == True,
+                 and_(model.resource_revision_table.c.current == True,
                  model.resource_revision_table.c.state.in_(['active','deleted']),
                  model.resource_group_table.c.id == model.resource_revision_table.c.resource_group_id,
                 )
@@ -489,6 +510,23 @@ class Drupal(SingletonPlugin):
         conn_drupal.execute(self.package_extra_table.insert(), package_extra_inserts)
         print 'extras done'
 
+        #tags
+        tags = conn_ckan.execute(
+            select(
+                [model.package_tag_revision_table, model.tag_table.c.name],
+                and_(model.package_tag_revision_table.c.current == True,
+                     model.package_tag_revision_table.c.state.in_(['active','deleted']),
+                     model.tag_table.c.id == model.package_tag_revision_table.c.tag_id)
+            )
+        ).fetchall()
+        tag_inserts = []
+        for tag in tags:
+            tag_inserts.append({'name': tag['name'],
+                                'id': tag['id'],
+                                'package_id': tag['package_id']})
+        conn_drupal.execute(self.tag_table.insert(), tag_inserts)
+        print 'tags done'
+
         ## get nodes
 
         packages = conn_drupal.execute(
@@ -506,6 +544,13 @@ class Drupal(SingletonPlugin):
             data_dict['body'] = data_dict.get('notes', '')
             if not data_dict['title']:
                 data_dict['title'] = data_dict['name']
+            tags = conn_drupal.execute(
+                select(
+                    [self.tag_table.c.name],
+                    self.tag_table.c.package_id == package['id']
+                )
+            ).fetchall()
+            data_dict['tags'] = [{'name': tag[0]} for tag in tags]
             data = json.dumps({'data': data_dict})
             req = urllib2.Request(url, data, {'Content-type': 'application/json'})
             f = urllib2.urlopen(req, None, 3)
@@ -526,5 +571,6 @@ class Drupal(SingletonPlugin):
             
         conn_drupal.execute('update ckan_resource set nid = (select nid from ckan_package where ckan_resource.package_id = ckan_package.id);')
         conn_drupal.execute('update ckan_package_extra set nid = (select nid from ckan_package where ckan_package_extra.package_id = ckan_package.id);')
+        conn_drupal.execute('update ckan_tag set nid = (select nid from ckan_package where ckan_tag.package_id = ckan_package.id);')
         print 'finished migration'
 
