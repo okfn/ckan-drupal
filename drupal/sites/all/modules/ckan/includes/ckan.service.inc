@@ -127,15 +127,27 @@ function  _ckanrest_delete($nid) {
 function  _ckanrest_update($nid, $data) {
   $node = node_load($nid);
 
+  $ckan_vocabulary_id = variable_get('ckan_vocabulary_id', '');
+  if (!is_numeric($ckan_vocabulary_id)) {
+      return services_error('No CKAN vocabulary ID set in admin/settings/ckan.', 406);
+  }
+
   // Check the node exists.
   if (!$node->nid) {return services_error('Not a node.', 404);}
 
   // Check the node is the correct type.
   if (!$node->type == 'ckan_package') {return services_error('Not a package node.', 406);}
 
-  // Update title, body, tags
+  // Update title, body
   $node->title = $data['title'] ?  $data['title']: $node->title ;
   $node->body = $data['body'] ?  $data['body'] : $node->body ;
+
+  // Add terms
+  //Clear existing terms if key is given
+  if ($data['terms']) {
+    $node->taxonomy = '';
+    $node->taxonomy['tags'][$ckan_vocabulary_id] = implode($data['terms'], ",");
+  }
 
   node_save($node);
   return $node;
