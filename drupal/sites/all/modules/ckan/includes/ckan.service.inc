@@ -46,9 +46,6 @@ function  _ckanrest_retrieve($nid) {
  /**
   *  Function for create
   *
-  *  The node_save function here will not invoke hook_insert, hook_update. This is what we want in
-  *  this case, as we only want to make a blank ckan_package node and ckan will take care of the
-  *  rest of the update. node_save will invoke any hook_nodeapi hooks.
   *
   */
 function  _ckanrest_create($data) {
