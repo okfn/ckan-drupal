@@ -27,8 +27,9 @@ Retrieve  GET  {site}{basepath}/services/package/{nid}.json
 
 Create  POST  {site}{basepath}/services/package.json        
 {"data":
-  {"title" : "newtitle",    //required and not empty    
-   "body"  : "newbody"      //optional
+  {"title" : "newtitle",                  //required and not empty    
+   "body"  : "newbody"                    //optional
+   "terms  : {"0":"term1,"1":"term2"}     //optional
   }
 }
   
@@ -36,6 +37,7 @@ Update  PUT  {site}{basepath}/services/package/{nid).json
 {"data":
   {"title" : "newtitle",       //optional
    "body"  : "newbody"         //optional
+   "terms  : {"0":"term1,"1":"term2"}     //optional
   }
 } 
   
