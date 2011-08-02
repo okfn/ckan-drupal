@@ -70,10 +70,21 @@ function  _ckanrest_create($data) {
   $pnode->uid = 1;
   $pnode->name = "admin";
   $pnode->status = $publish;
+  $pnode->services_call = TRUE;
+
+  //Add Tags
+  if ((array_key_exists('terms', $data))) {
+    $pnode->taxonomy = null;   //Clear all existing terms if key is given
+    $ckan_vocabulary_id = variable_get('ckan_vocabulary_id', '');
+    $terms = implode(',', $data['terms']);
+    $pnode->taxonomy['tags'][$ckan_vocabulary_id] = $terms;
+  }
+
+
   node_save($pnode);
 
   //Check the node has been saved
-  if (isset($pnode->nid)) {
+  if (is_numeric($pnode->nid)) {
     $response = $pnode;
   } else {
     // You shouldn't get here.
@@ -123,6 +134,7 @@ function  _ckanrest_delete($nid) {
   */
 function  _ckanrest_update($nid, $data) {
   $node = node_load($nid);
+  $node->services_call = TRUE;
 
   $ckan_vocabulary_id = variable_get('ckan_vocabulary_id', '');
   if (!is_numeric($ckan_vocabulary_id)) {
@@ -139,11 +151,12 @@ function  _ckanrest_update($nid, $data) {
   $node->title = $data['title'] ?  $data['title']: $node->title ;
   $node->body = $data['body'] ?  $data['body'] : $node->body ;
 
-  // Add terms
-  //Clear existing terms if key is given
-  if ($data['terms']) {
-    $node->taxonomy = '';
-    $node->taxonomy['tags'][$ckan_vocabulary_id] = implode($data['terms'], ",");
+  //Add Tags
+  if ((array_key_exists('terms', $data))) {
+    $node->taxonomy = null;   //Clear all existing terms if key is given
+    $ckan_vocabulary_id = variable_get('ckan_vocabulary_id', '');
+    $terms = implode(',', $data['terms']);
+    $node->taxonomy['tags'][$ckan_vocabulary_id] = $terms;
   }
 
   node_save($node);
