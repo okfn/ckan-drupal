@@ -574,6 +574,9 @@ function ckan_load($node) {
  * database inserts.
  */
 function ckan_insert($node) {
+  // Always quit if this is a service call operation.
+  if ($node->services_call) {return;}
+
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
   $package = _ckan_package_form_to_api((array)$node);
@@ -598,6 +601,9 @@ function ckan_insert($node) {
  * database updates.
  */
 function ckan_update($node) {
+  // Always quit if this is a service call operation.
+  if ($node->services_call) {return;}
+
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
   $package = _ckan_package_form_to_api((array)$node);
