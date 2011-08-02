@@ -1,0 +1,9 @@
+
+This file will install ckan-drupal on a clean ubuntu 10.04 server (lucid) install.
+
+Prerequisites
+=============
+sudo apt-get install git-core
+git clone git://github.com/okfn/ckan-drupal.git
+
+
