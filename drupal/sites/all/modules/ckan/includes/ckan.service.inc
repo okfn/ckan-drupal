@@ -54,22 +54,13 @@ function  _ckanrest_create($data) {
   if (empty($data['title'])) { return services_error("Not Acceptable. 'title' can not be empty.", 406);}
 
   $response = array();
-  // Check node options to see whether to publish by default.
-  $package_options = variable_get('node_options_ckan_package', 'use_default');
-  // If we haven't change the node type yet, use drupal's default.
-  if ($package_options == 'use_default') {
-    $publish = TRUE;
-  } else {
-    $publish = in_array('status', $package_options);
-  }
-
   $pnode = new stdClass();
   $pnode->type = 'ckan_package';
   $pnode->title = $data['title'];
   $pnode->body =  $data['body'];
   $pnode->uid = 1;
   $pnode->name = "admin";
-  $pnode->status = $publish;
+  $pnode->status = $data['status'];
   $pnode->services_call = TRUE;
 
   //Add Tags
@@ -150,6 +141,7 @@ function  _ckanrest_update($nid, $data) {
   // Update title, body
   $node->title = $data['title'] ?  $data['title']: $node->title ;
   $node->body = $data['body'] ?  $data['body'] : $node->body ;
+  $node->status = $data['status'];
 
   //Add Tags
   if ((array_key_exists('terms', $data))) {

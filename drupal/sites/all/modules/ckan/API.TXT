@@ -29,6 +29,7 @@ Create  POST  {site}{basepath}/services/package.json
 {"data":
   {"title" : "newtitle",                  //required and not empty    
    "body"  : "newbody"                    //optional
+   "status": "1"                          //optional 1 = published, 
    "terms  : {"0":"term1,"1":"term2"}     //optional
   }
 }
@@ -37,6 +38,7 @@ Update  PUT  {site}{basepath}/services/package/{nid).json
 {"data":
   {"title" : "newtitle",       //optional
    "body"  : "newbody"         //optional
+   "status": "1"                          //optional 1 = published, 
    "terms  : {"0":"term1,"1":"term2"}     //optional
   }
 } 
