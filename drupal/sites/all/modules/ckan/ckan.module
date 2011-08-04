@@ -608,7 +608,9 @@ function ckan_insert($node) {
  */
 function ckan_update($node) {
   // Always quit if this is a service call operation.
-  if ($node->services_call) {return;}
+  if (isset($node->services_call) && $node->services_call) {
+    return;
+  }
 
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
   $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
