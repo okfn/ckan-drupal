@@ -1,5 +1,5 @@
 name = CKAN project
-description = Integratio with CKAN data hub.
+description = Integration with CKAN data hub.
 package = CKAN
 core = 6.x
 
