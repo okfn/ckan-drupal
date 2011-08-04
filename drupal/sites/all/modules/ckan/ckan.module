@@ -759,7 +759,7 @@ function _ckan_package_form_to_api($values) {
   $package['author_email']     = $values['ckan']['author_email'];
   $package['maintainer']       = $values['ckan']['maintainer'];
   $package['maintainer_email'] = $values['ckan']['maintainer_email'];
-  $package['notes']            = $values['ckan']['notes'];
+  $package['notes']            = $values['body'];
   $package['license_id']       = $values['ckan']['license_id'];
 
   //Add Tags
