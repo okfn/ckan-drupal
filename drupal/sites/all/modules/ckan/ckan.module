@@ -767,7 +767,7 @@ function _ckan_package_form_to_api($values) {
   //Add Tags
   $ckan_vocabulary_id = variable_get('ckan_vocabulary_id', '');
   // Check that we have at least a single charachter that we can use as a term.
-  if (strlen($values['taxonomy']['tags'][$ckan_vocabulary_id][0]) >1) {
+  if (strlen($values['taxonomy']['tags'][$ckan_vocabulary_id]) >1) {
     $terms = explode(',', $values['taxonomy']['tags'][$ckan_vocabulary_id]);
     foreach ($terms as $term) {
       $package['tags'][] = array('name' => trim($term));
