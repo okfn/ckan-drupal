@@ -11,6 +11,9 @@ drupal/site/default/files
 .project
 .buildpath
 
+# VIM swp files
+*.swp
+
 # pyenv environment
 bin/
 include/
