@@ -40,7 +40,7 @@ class TestAction(WsgiAppCase):
         cls.engine.execute('delete from ckan_package')
         cls.engine.execute('delete from ckan_resource')
         cls.engine.execute('delete from ckan_package_extra')
-        cls.engine.execute('delete from ckan_tag')
+        cls.engine.execute('delete from ckan_package_tag')
         cls.engine.execute('delete from node')
         cls.engine.execute('delete from node_revisions')
 
@@ -55,7 +55,7 @@ class TestAction(WsgiAppCase):
         package_count = conn.execute('select count(*) from ckan_package').fetchone()
         res_count = conn.execute('select count(*) from ckan_resource').fetchone()
         extra_count = conn.execute('select count(*) from ckan_package_extra').fetchone()
-        tag_count = conn.execute('select count(*) from ckan_tag').fetchone()
+        tag_count = conn.execute('select count(*) from ckan_package_tag').fetchone()
         assert package_count[0] == 2
         assert res_count[0] == 2
         assert extra_count[0] == 2
@@ -103,7 +103,7 @@ class TestAction(WsgiAppCase):
         package_count = conn.execute('select count(*) from ckan_package').fetchone()
         res_count = conn.execute('select count(*) from ckan_resource').fetchone()
         extra_count = conn.execute('select count(*) from ckan_package_extra').fetchone()
-        tag_count = conn.execute('select count(*) from ckan_tag').fetchone()
+        tag_count = conn.execute('select count(*) from ckan_package_tag').fetchone()
         assert package_count[0] == 3
         assert res_count[0] == 4
         assert extra_count[0] == 3
@@ -116,7 +116,7 @@ class TestAction(WsgiAppCase):
         res = self.app.post('/api/action/drupal_package_update', params=postparams,
                             extra_environ={'Authorization': 'tester'})
 
-        tag_count = conn.execute('select count(*) from ckan_tag').fetchone()
+        tag_count = conn.execute('select count(*) from ckan_package_tag').fetchone()
         assert tag_count[0] == 4
 
         package_updated = json.loads(res.body)['result']
@@ -156,7 +156,7 @@ class TestAction(WsgiAppCase):
                             extra_environ={'Authorization': 'tester'}, status=409)
         error = json.loads(res.body)['error']
 
-        assert error ==  {u'__type': u'Validtion Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}
+        assert error ==  {u'__type': u'Validation Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}, error
 
     def test_03_update_validation_error(self):
 
@@ -184,7 +184,7 @@ class TestAction(WsgiAppCase):
                             extra_environ={'Authorization': 'tester'}, status=409)
         error = json.loads(res.body)['error']
 
-        assert error ==  {u'__type': u'Validtion Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}
+        assert error ==  {u'__type': u'Validation Error', u'name': [u'Name must be purely lowercase alphanumeric (ascii) characters and these symbols: -_']}
 
 
     def test_04_purge(self):

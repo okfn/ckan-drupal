@@ -412,6 +412,8 @@ class Drupal(SingletonPlugin):
             Column('name', types.Unicode(PACKAGE_NAME_MAX_LENGTH),
                    nullable=False, unique=True),
             Column('title', types.UnicodeText),
+            Column('version', types.UnicodeText),
+            Column('url', types.UnicodeText),
             Column('author', types.UnicodeText),
             Column('author_email', types.UnicodeText),
             Column('maintainer', types.UnicodeText),
@@ -421,7 +423,9 @@ class Drupal(SingletonPlugin):
             Column('update_date', types.Integer),
             Column('state', types.UnicodeText),
             Column('completed', types.Boolean),
+            Column('revision_id', types.UnicodeText),
         )
+
 
         self.resource_table = Table(
             'ckan_resource', self.metadata,
@@ -438,6 +442,7 @@ class Drupal(SingletonPlugin):
             Column('hash', types.UnicodeText),
             Column('position', types.Integer),
             Column('extras', types.UnicodeText),
+            Column('revision_id', types.UnicodeText),
             )
 
         self.package_extra_table = Table('ckan_package_extra', self.metadata,
@@ -446,13 +451,15 @@ class Drupal(SingletonPlugin):
             Column('package_id', types.UnicodeText),
             Column('key', types.UnicodeText),
             Column('value', types.UnicodeText),
+            Column('revision_id', types.UnicodeText),
         )
 
-        self.tag_table = Table('ckan_tag', self.metadata,
+        self.tag_table = Table('ckan_package_tag', self.metadata,
             Column('nid', types.UnicodeText),
             Column('id', types.Unicode(100), primary_key=True),
             Column('package_id', types.UnicodeText),
             Column('name', types.UnicodeText),
+            Column('revision_id', types.UnicodeText),
         )
 
         self.license_table = Table('ckan_license', self.metadata,
