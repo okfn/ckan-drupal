@@ -7,6 +7,8 @@ import time
 import urllib2
 import urlparse
 
+from ckan.logic.schema import default_create_package_schema, default_update_package_schema
+from ckan.lib.navl.dictization_functions import validate 
 from ckan.plugins import IConfigurer, ISession, IActions
 from ckan.plugins import implements, SingletonPlugin
 import ckan.model as model
@@ -236,11 +238,20 @@ class Drupal(SingletonPlugin):
     def package_create(self, context, data_dict):
 
         preview = context.get('preview', False)
+        schema = context.get('schema') or default_create_package_schema()
         if preview:
             return
         session = context['model'].Session
         url = urlparse.urljoin(self.base_url, 'services/package.json')
         data_dict['body'] = data_dict.get('notes', '')
+
+        ## run through validate to make sure tags are in correct place
+        data, errors = validate(data_dict, schema, context)
+        terms = {}
+        for num, tag in enumerate(data.get('tags', [])):
+            terms[str(num)] = tag['name']
+        data_dict['terms'] = terms
+
         data = json.dumps({'data': data_dict})
         req = urllib2.Request(url, data, {'Content-type': 'application/json'})
         ##XXX think about error conditions a bit more
@@ -270,6 +281,7 @@ class Drupal(SingletonPlugin):
 
     def package_update(self, context, data_dict):
         preview = context.get('preview', False)
+        schema = context.get('schema') or default_update_package_schema()
         if preview:
             return
         if 'id' not in data_dict:
@@ -285,6 +297,17 @@ class Drupal(SingletonPlugin):
             raise NotFound
         nid = result['nid']
         data_dict['body'] = data_dict['notes']
+        ## run through validate to make sure tags are in correct place
+        data, errors = validate(data_dict, schema, context)
+        terms = {}
+        for num, tag in enumerate(data.get('tags', [])):
+            terms[str(num)] = tag['name']
+        data_dict['terms'] = terms
+
+        if data_dict.get('state', 'active') == 'active':
+            data_dict['status'] = '1'
+        else:
+            data_dict['status'] = '0'
 
         url = urlparse.urljoin(self.base_url, 'services/package/%s.json' % (nid))
         data = json.dumps({'data': data_dict})
