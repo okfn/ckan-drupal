@@ -1,3 +1,5 @@
 CREATE DATABASE ckandrupal;
-CREATE ROLE ckandrupal with PASSWORD 'ckandrupal';
+BEGIN
+CREATE ROLE ckandrupal with PASSWORD 'ckandrupal' LOGIN;
 GRANT ALL PRIVILEGES ON DATABASE ckandrupal to ckandrupal;
+COMMIT
