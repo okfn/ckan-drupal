@@ -333,6 +333,11 @@ function get_ckan_resource_value($node, $resource_num, $field) {
     $node->ckan['resource'][$resource_num][$field] : '';
 }
 
+function get_ckan_extra_value($node, $extra_num, $field) {
+  return isset($node->ckan['extras'][$extra_num][$field]) ? 
+    $node->ckan['extras'][$extra_num][$field] : '';
+}
+
 /**
  * Implementation of hook_form().
  *
@@ -358,116 +363,116 @@ function ckan_form(&$node, $form_state) {
     '#weight' => -5
   );
 
-   $form['ckan']['title'] = array(
-     '#type' => 'hidden',
-     '#value' => get_ckan_value($node, 'title'),
-   );
+  $form['ckan']['title'] = array(
+    '#type' => 'hidden',
+    '#value' => get_ckan_value($node, 'title'),
+  );
 
   $form['body'] = node_body_field($node, $type->body_label, $type->min_word_count);
   //Always use ckan notes as the default body instead of what is in drupal's tables.
   $form['body']['body']['#default_value'] = get_ckan_value($node, 'notes');
 
   $form['ckan'] = array(
-     '#tree' => TRUE,
-   );
+    '#tree' => TRUE,
+  );
 
   // We need a hidden ckan_id field as the disabled field value isn't passed through to the node.
   // This ckan_id is needed as a key for the api call to update this package.
-   $form['ckan']['id'] = array(
-     '#type' => 'hidden',
-     '#value' => get_ckan_value($node, 'id'),
-   );
-   $form['ckan']['id_display'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan id',
-     '#default_value' => get_ckan_value($node, 'id'),
-     '#disabled' => TRUE,
-   );
+  $form['ckan']['id'] = array(
+    '#type' => 'hidden',
+    '#value' => get_ckan_value($node, 'id'),
+  );
+  $form['ckan']['id_display'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan id',
+    '#default_value' => get_ckan_value($node, 'id'),
+    '#disabled' => TRUE,
+  );
 
-   $form['ckan']['name'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan name',
-     '#default_value' => get_ckan_value($node, 'name'),
-     '#required' => TRUE,
-     '#weight' => '0',
-   );
-   $form['ckan']['version'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan version',
-     '#default_value' => get_ckan_value($node, 'version'),
-   );
-   $form['ckan']['url'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan url',
-     '#default_value' => get_ckan_value($node, 'url'),
-   );
-   $form['ckan']['author'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan author',
-     '#default_value' => get_ckan_value($node, 'author'),
-   );
-   $form['ckan']['author_email'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan author email',
-     '#default_value' => get_ckan_value($node, 'author_email'),
-   );
-   $form['ckan']['maintainer'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan maintainer',
-     '#default_value' => get_ckan_value($node, 'maintainer'),
-   );
-   $form['ckan']['maintainer_email'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan maintainer email',
-     '#default_value' => get_ckan_value($node, 'maintainer_email'),
-   );
+  $form['ckan']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan name',
+    '#default_value' => get_ckan_value($node, 'name'),
+    '#required' => TRUE,
+    '#weight' => '0',
+  );
+  $form['ckan']['version'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan version',
+    '#default_value' => get_ckan_value($node, 'version'),
+  );
+  $form['ckan']['url'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan url',
+    '#default_value' => get_ckan_value($node, 'url'),
+  );
+  $form['ckan']['author'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan author',
+    '#default_value' => get_ckan_value($node, 'author'),
+  );
+  $form['ckan']['author_email'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan author email',
+    '#default_value' => get_ckan_value($node, 'author_email'),
+  );
+  $form['ckan']['maintainer'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan maintainer',
+    '#default_value' => get_ckan_value($node, 'maintainer'),
+  );
+  $form['ckan']['maintainer_email'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan maintainer email',
+    '#default_value' => get_ckan_value($node, 'maintainer_email'),
+  );
 
-   $license_options = array();
-   $sql = "SELECT license_id, license_name
-           FROM {ckan_license} ";
-   $resource = db_query($sql);
-   while ($row = db_fetch_array($resource)) {
-     $license_options[$row['license_id']]  = $row['license_name'];
-   }
+  $license_options = array();
+  $sql = "SELECT license_id, license_name
+          FROM {ckan_license} ";
+  $resource = db_query($sql);
+  while ($row = db_fetch_array($resource)) {
+    $license_options[$row['license_id']]  = $row['license_name'];
+  }
 
-   $form['ckan']['license_id'] = array(
-     '#type' => 'select',
-     '#title' => 'ckan license_id',
-     '#default_value' => get_ckan_value($node, 'license_id'),
-     '#options' => $license_options,
-   );
-   $form['ckan']['update_date'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan update_date',
-     '#default_value' => get_ckan_value($node, 'update_date'),
-     '#disabled' => TRUE,
-   );
-   $form['ckan']['state'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan state',
-     '#default_value' => get_ckan_value($node, 'state'),
-     '#disabled' => TRUE,
-   );
+  $form['ckan']['license_id'] = array(
+    '#type' => 'select',
+    '#title' => 'ckan license_id',
+    '#default_value' => get_ckan_value($node, 'license_id'),
+    '#options' => $license_options,
+  );
+  $form['ckan']['update_date'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan update_date',
+    '#default_value' => get_ckan_value($node, 'update_date'),
+    '#disabled' => TRUE,
+  );
+  $form['ckan']['state'] = array(
+    '#type' => 'textfield',
+    '#title' => 'ckan state',
+    '#default_value' => get_ckan_value($node, 'state'),
+    '#disabled' => TRUE,
+  );
    $form['ckan']['completed'] = array(
-     '#type' => 'textfield',
-     '#title' => 'ckan completed',
-     '#default_value' => get_ckan_value($node, 'completed'),
-     '#disabled' => TRUE,
-   );
+    '#type' => 'textfield',
+    '#title' => 'ckan completed',
+    '#default_value' => get_ckan_value($node, 'completed'),
+    '#disabled' => TRUE,
+  );
 
-   $form['ckan']['resource'] = array(
-     '#prefix' => '<div id="ckan-package-resource"><h2>Resources:</h2>',
-     '#suffix' => '</div>',
-     '#type' => 'fieldset',
-     '#tree' => TRUE,
-   );
+  $form['ckan']['resource'] = array(
+    '#prefix' => '<div id="ckan-package-resource"><h2>Resources:</h2>',
+    '#suffix' => '</div>',
+    '#type' => 'fieldset',
+    '#tree' => TRUE,
+  );
 
   // Add resources fieldsets to the package form.
   $num_resources = isset($node->ckan['resource']) ? count($node->ckan['resource']) + 1 : 1;
   for ($delta = 0; $delta < $num_resources; $delta++) {
     $form['ckan']['resource'][$delta] = array(
       '#type' => 'fieldset',
-      '#title' => 'Resource'.$delta,
+      '#title' => 'Resource '.$delta,
       '#tree' => TRUE,
       '#collapsible' => TRUE,
     );
@@ -475,19 +480,19 @@ function ckan_form(&$node, $form_state) {
     //@todo Bad urls return 409, so try to validate
     $form['ckan']['resource'][$delta]['url'] = array(
       '#type' => 'textfield',
-      '#title' => 'Resource'.$delta.' url',
+      '#title' => 'Resource '.$delta.' url',
       '#default_value' => get_ckan_resource_value($node, $delta, 'url'),
     );
 
     $form['ckan']['resource'][$delta]['description'] = array(
       '#type' => 'textfield',
-      '#title' => 'Resource'.$delta.' description',
+      '#title' => 'Resource '.$delta.' description',
       '#default_value' => get_ckan_resource_value($node, $delta, 'description'),
     );
 
     $form['ckan']['resource'][$delta]['format'] = array(
       '#type' => 'textfield',
-      '#title' => 'Resource'.$delta.' format',
+      '#title' => 'Resource '.$delta.' format',
       '#default_value' => get_ckan_resource_value($node, $delta, 'format'),
     );
 
@@ -496,10 +501,46 @@ function ckan_form(&$node, $form_state) {
       '#type' => 'hidden',
       '#value' => get_ckan_resource_value($node, $delta, 'id'),
     );
-
-    // Add our own validator.
-    $form['#validate']= array('ckan_form_validate');
   }
+
+  // Add extras fieldsets to the package form.
+  $form['ckan']['extras'] = array(
+    '#prefix' => '<div id="ckan-package-extras"><h2>Extras:</h2>',
+    '#suffix' => '</div>',
+    '#type' => 'fieldset',
+    '#tree' => TRUE,
+  );
+
+  $num_extras = isset($node->ckan['extras']) ? count($node->ckan['extras']) + 1 : 1;
+  for ($i = 0; $i < $num_extras; $i++) {
+    $form['ckan']['extras'][$i] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Extra '.$i,
+      '#tree' => TRUE,
+      '#collapsible' => TRUE,
+    );
+
+    $form['ckan']['extras'][$i]['key'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Extra '.$i.' key',
+      '#default_value' => get_ckan_extra_value($node, $i, 'key'),
+    );
+
+    $form['ckan']['extras'][$i]['value'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Extra '.$i.' value',
+      '#default_value' => get_ckan_extra_value($node, $i, 'value'),
+    );
+
+    // Add a hidden Extra id
+    $form['ckan']['extras'][$i]['id'] = array(
+      '#type' => 'hidden',
+      '#value' => get_ckan_extra_value($node, $i, 'id'),
+    );
+  }
+
+  // Add our own validator.
+  $form['#validate']= array('ckan_form_validate');
 
   return $form;
 }
@@ -565,6 +606,15 @@ function ckan_load($node) {
   $result = db_query($sql, $node->nid);
   while ($row = db_fetch_array($result)) {
     $additions['ckan']['resource'][] = $row;
+  }
+
+  // Load the extras
+  $sql = "SELECT *
+          FROM {ckan_package_extra}
+          WHERE nid = %d";
+  $result = db_query($sql, $node->nid);
+  while ($row = db_fetch_array($result)) {
+    $additions['ckan']['extras'][] = $row;
   }
 
   return $additions;
@@ -642,6 +692,10 @@ function ckan_view($node, $teaser = FALSE, $page = FALSE) {
     '#value' => theme('ckan_package_resource_info', $node),
     '#weight' => 1,
   );
+  $node->content['ckan']['extras'] = array(
+    '#value' => theme('ckan_package_extras_info', $node),
+    '#weight' => 1,
+  );
 
   return $node;
 }
@@ -676,6 +730,9 @@ function ckan_theme() {
       'arguments' => array('node'),
     ),
    'ckan_package_resource_info' => array(
+      'arguments' => array('node'),
+    ),
+   'ckan_package_extras_info' => array(
       'arguments' => array('node'),
     ),
   );
@@ -731,6 +788,30 @@ function theme_ckan_package_resource_info($node) {
   return $output;
 }
 
+/**
+ * A custom theme function to render package extras
+ *
+ */
+function theme_ckan_package_extras_info($node) {
+  if (!isset($node->ckan['extras'])) {
+    return '';
+  }
+
+  $output = '<fieldset class="collapsible"><legend>Extras</legend><div><ul>';
+  $i = 0;
+  foreach ($node->ckan['extras'] as $extra) {
+    $i++;
+    $output .= "<li>";
+    $output .= t('%keyname : %value ', 
+      array('%keyname' => check_plain($extra['key'])."", 
+        '%value' => $extra['value']
+    ));
+    $output .= "</li>";
+  }
+  $output .= '</ul></div></fieldset>';
+  return $output;
+}
+
 /*
  * Function to return the ckan API array
  *
@@ -774,9 +855,8 @@ function _ckan_package_form_to_api($values) {
     }
   }
 
-
   // Add Resources
-  $resources =array();
+  $resources = array();
   $submissions = $values['ckan']['resource'];
   foreach ($submissions as $resource) {
     if (!empty($resource['url']) ) {
