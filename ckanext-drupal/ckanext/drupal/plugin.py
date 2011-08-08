@@ -399,6 +399,10 @@ class Drupal(SingletonPlugin):
 
         url = config['drupal.db_url'] 
         self.base_url = config['drupal.base_url'] 
+        # make sure self.base_url ends in trailing '/', urlparse.urljoin
+        # breaks otherwise
+        if not self.base_url[-1] == '/':
+            self.base_url += '/'
 
         self.engine = create_engine(url)
         self.metadata = MetaData(self.engine)
