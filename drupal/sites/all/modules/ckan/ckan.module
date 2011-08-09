@@ -551,7 +551,10 @@ function ckan_form(&$node, $form_state) {
  */
 function ckan_form_validate($form, &$form_state) {
   require_once(drupal_get_path('module', 'ckan').'/lib/ckan.lib.inc');
-  $ckan = new Ckan(variable_get('ckan_connection_url', ''), variable_get('ckan_connection_api_key', ''));
+  $ckan = new Ckan(
+    variable_get('ckan_connection_url', ''), 
+    variable_get('ckan_connection_api_key', '')
+  );
 
   $package = _ckan_package_form_to_api($form_state['values']);
 
@@ -866,6 +869,16 @@ function _ckan_package_form_to_api($values) {
     }
   }
   $package['resources'] = $resources;
+
+  // Add Extras
+  $extras = array();
+  $submitted_extras = $values['ckan']['extras'];
+  foreach ($submitted_extras as $submitted_extra) {
+    if (!empty($submitted_extra['key'])) {
+      $extras[] = $submitted_extra;
+    }
+  }
+  $package['extras'] = $extras;
 
   return $package;
 }

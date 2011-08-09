@@ -219,9 +219,9 @@ class Drupal(SingletonPlugin):
             conn.close()
 
     def drupal_package_create(self, context, data_dict):
-
         session = context['model'].Session
         context['nid'] = data_dict.pop('nid')
+        context['extras_as_string'] = True
         package_create = create.package_create(context, data_dict)
         package_create['nid'] = context['nid']
         package_create['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
@@ -230,6 +230,7 @@ class Drupal(SingletonPlugin):
     def drupal_package_update(self, context, data_dict):
         session = context['model'].Session
         context['nid'] = data_dict.pop('nid')
+        context['extras_as_string'] = True
         package_update = update.package_update(context, data_dict)
         package_update['nid'] = context['nid']
         package_update['revision_message'] = '%s-%s'%(session.revision.id,session.revision.message)
