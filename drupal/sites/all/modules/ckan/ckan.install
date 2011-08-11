@@ -6,7 +6,7 @@
   */
 
 function ckan_install() {
-
+  drupal_install_schema('ckan');
 }
 
 function ckan_uninstall() {
@@ -69,6 +69,25 @@ function ckan_schema() {
       ),
     ),
     'primary key' => array('id'),
+  );
+  
+ $schema['ckan_user_api_key'] = array(
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The primary identifier for a node.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE),
+      'api_key' => array(
+        'type' => 'char',
+        'length' => 36,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'unique keys' => array(
+      'api_key'     => array('api_key')
+      ),
+    'primary key' => array('uid'),
   );
 
   return $schema;

@@ -17,10 +17,27 @@ function ckan_menu() {
     'page arguments' => array('_ckan_admin_form'),
     'type' => MENU_NORMAL_ITEM,
   );
+  
+  $items['user/%user/api-key'] = array(
+    'title' => 'API Key',
+    'page callback' => 'ckan_user_api_key',
+    'page arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'ckan_user_api_key_access',
+    'access arguments' => array(1),
+    'weight' => 2,
+  );
 
   return $items;
 }
 
+function ckan_perm() {
+  return array('Generate own API key');
+}
+
+function ckan_user_api_key_access($account) {
+  return (($GLOBALS['user']->uid == $account->uid) || user_access('administer users')) && $account->uid > 0 &&  user_access('Generate own API key');
+}
 
 function _ckan_admin_form(&$form_state) {
 
@@ -882,3 +899,28 @@ function _ckan_package_form_to_api($values) {
 
   return $package;
 }
+
+function ckan_user_api_key($user) {
+  $api_key = db_result(db_query("SELECT api_key FROM {ckan_user_api_key} WHERE uid = %d", $user->uid));
+  
+  if ($api_key) {
+    return "<br/><strong>Your API key:</strong> $api_key";
+  } else {
+    if (arg(3) == 'create') {
+      if (!function_exists('uuid_create')) {
+        return "The uuid pecl extension is required.";
+      }
+      do {
+        $uuid = strtolower(uuid_create(UUID_TYPE_TIME));
+        $exists = db_result(db_query("SELECT api_key FROM {ckan_user_api_key} WHERE api_key = '%s'", $uuid));
+      } while ($exists);
+      
+      db_query("INSERT INTO  {ckan_user_api_key} (`uid` ,`api_key`) VALUES ('%s',  '%s')", $user->uid, $uuid);
+      
+      drupal_goto('user/'.$user->uid.'/api-key');
+    } else {
+      return l('Create an API key?', 'user/'.$user->uid.'/api-key/create');
+    }
+  }
+}
+
